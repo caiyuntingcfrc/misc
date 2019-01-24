@@ -1,5 +1,6 @@
 library(tidyverse)
 library(docxtractr)
+#library(data.table)
 
 rm(list = ls())
 
@@ -70,16 +71,28 @@ df22 <- lapply(l1, read_fwf, fwf_positions(code_tbl$start[c(1, 68:88)],
 
 # card 23-99
 l23 <- filter(df.list, card_num %in% 23:99)[ ,1]
-df23 <- lapply(l23, read_fwf, fwf_positions(code_tbl$start[c(1, 89:93, 95)], 
-                                          code_tbl$end[c(1, 89:93, 95)],
-                                          col_names = code_tbl$variable[c(1, 89:93, 95)]), 
-              col_types = cols(card_num = col_integer()))
-#tibbles into a list 
-l.df23 <- list()
-for(i in 23:99) {
-        l.df23[i-22] <- lapply(df23, filter, card_num == i)
-        # remove variable "card_num"
-        l.df23[[i-22]] <- l.df23[[i-22]] %>% select(-one_of("card_num"))
+
+x <- list()
+for(i in 0:4){
+        x[i+1] <- lapply(l23, read_fwf, fwf_positions(c(1, 13 + i * 14, 9 + i * 14),
+                                                    c(8, 22 + i * 14, 12 + i * 14),
+                                                    col_names = c("x1", "exp", "item")
+                                                    ),
+                       col_types = cols())
+        df23 <- do.call(bind_rows, x) %>% distinct()
+        gc()
 }
+rm(x)
+
+#spread (transpose)
+dd <- df23 %>% spread("item", "exp")
+dd$`0000` <- NULL
+c <- colnames(dd)[-1]
+colnames(dd) <- paste("item_", c, sep = "")
+colnames(dd)
 # merge
 # df23 <- Reduce(function(...) merge(..., by = "x1", all = TRUE), l.df23)
+
+#LaF mehod
+a <- laf_open_fwf("home/HDATA106", column_types = c("string", "string"), column_widths = c(1, 9))
+View(a[1])                  
