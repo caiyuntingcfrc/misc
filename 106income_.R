@@ -99,17 +99,17 @@ gc()
 # list for grep
 sym <- c("{", grep("[A-R]", LETTERS, value = TRUE), "}")
 digi <- c(0:9, 1:9, 0)
-grepbook <- data.frame(sym, digi)
+positive <- c(rep("+", 10), rep("-", 10))
+grepbook <- data.frame(sym, digi, positive)
 
 # testing grep
-df23$exp[grep("*A", df23$exp)] <- df23$exp %>% .[grep("*A", .)] %>% gsub("*A", "1", .) %>% paste("-", ., sep = "")
-
-gsub(pattern = "*\\{", replacement = "0", x = df23$exp) 
+df23$exp[grep("*A", df23$exp)] <- df23$exp[grep("*A", df23$exp)] %>% 
+        gsub("*A", "1", .) %>% paste("-", ., sep = "")
 
 # spread (transpose)
 df23 <- df23 %>% spread("item", "exp")
 df23$`0000` <- NULL
-c <- colnames(df23)[-1] ; c
+c <- colnames(df23)[-1]
 colnames(df23) <- c("x1", paste("item_", c, sep = ""))
 # order
 df23 <- df23 %>% .[order(.$`x1`), ]
