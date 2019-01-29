@@ -5,7 +5,11 @@ library(docxtractr)
 rm(list = ls())
 
 # codebook
+<<<<<<< HEAD
 path_code <- "c:/Users/leots/Documents/R data/AA170042/code106.docx"
+=======
+path_code <- "c:/Users/user/Downloads/AA170042/code106.docx"
+>>>>>>> parent of c758f89... Add files via upload
 code_tbl <- read_docx(path_code) %>% docx_extract_tbl() %>% .[complete.cases(.), ]
 
 # add card_num
@@ -24,6 +28,7 @@ code_tbl$start <- code_tbl$card_pos %>% str_split("/", simplify = TRUE) %>%
 # end
 code_tbl$end <- code_tbl$card_pos %>% str_split("/", simplify = TRUE) %>% 
         .[ , 2] %>% str_split("-", simplify = TRUE) %>% .[ ,2] %>% as.integer()
+<<<<<<< HEAD
 
 #read_fwf(path_dat, fwf_positions(56, 56))
 
@@ -39,6 +44,16 @@ df.list <- read_fwf(path_dat, fwf_positions(c(1, 79), c(80, 80),
                                                     col_names = c("raw", "card_num")),
                             col_types = cols(card_num = col_integer()))
 
+=======
+# replace NA in `end`
+code_tbl$end <- with(code_tbl, if_else(is.na(`end`), `start`, `end`))
+
+# data
+path_dat <- "home/HDATA106"
+df.list <- read_fwf(path_dat, fwf_positions(c(1, 79), c(80, 80), 
+                                                    col_names = c("raw", "card_num")),
+                            col_types = cols(card_num = col_integer()))
+>>>>>>> parent of c758f89... Add files via upload
 #card 01
 l1 <- filter(df.list, card_num == 1)[ ,1]
 df1 <- lapply(l1, read_fwf, fwf_positions(code_tbl$start[c(1, 1:16, 95)], 
@@ -47,6 +62,7 @@ df1 <- lapply(l1, read_fwf, fwf_positions(code_tbl$start[c(1, 1:16, 95)],
               col_types = cols(card_num = col_integer()))
 
 # card 02-20        
+<<<<<<< HEAD
 l2 <- vector("list", 50459)
 l2 <- filter(df.list, card_num %in% 2:20)[ , 1]
 df2 <- vector("list", 50459)
@@ -57,6 +73,13 @@ df2 <- lapply(l2, read_fwf, fwf_positions(code_tbl$start[c(1, 17:36, 95)],
 df2_ <- do.call(bind_rows, df2) %>% unique()
 test <- spread(df2_, "card_num", "b1_")
 
+=======
+l2 <- filter(df.list, card_num %in% 2:20)[ ,1]
+df2 <- lapply(l2, read_fwf, fwf_positions(code_tbl$start[c(1, 17:36, 95)], 
+                                   code_tbl$end[c(1, 17:36, 95)],
+                                   col_names = code_tbl$variable[c(1, 17:36, 95)]), 
+              col_types = cols(card_num = col_integer()))
+>>>>>>> parent of c758f89... Add files via upload
 #tibbles into a list 
 l.df2 <- list()
 for(i in 2:20) {
@@ -65,7 +88,11 @@ for(i in 2:20) {
      l.df2[[i-1]] <- l.df2[[i-1]] %>% select(-one_of("card_num"))
 }
 # merge
+<<<<<<< HEAD
 df2 <- Reduce(function(...) spread(..., "card_num"), l)
+=======
+#df2 <- Reduce(function(...) merge(..., by = "x1", all = TRUE), l)
+>>>>>>> parent of c758f89... Add files via upload
 
 # card 21
 l21 <- filter(df.list, card_num == 21)[ ,1]
