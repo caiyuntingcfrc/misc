@@ -54,7 +54,18 @@ df1 <- df1 %>% .[order(.$`x1`), ]
 df1$card_num <- NULL
 
 # card 02-20        
-l2 <- filter(df.list, card_num %in% 2:20)[ ,1]
+l2 <- filter(df.list, card_num %in% 2:20) %>% .[order(.$card_num), ]
+l2
+
+###### testing if else ######
+if(l2$card_num == 2){
+        test <- read_fwf(l2$raw, fwf_positions(code_tbl$start[c(1, 17:36, 95)], 
+                                               code_tbl$end[c(1, 17:36, 95)],
+                                               col_names = code_tbl$variable[c(1, 17:36, 95)]),
+                         col_types = cols(card_num = col_integer())
+                         )
+}
+
 df2 <- lapply(l2, read_fwf, fwf_positions(code_tbl$start[c(1, 17:36, 95)], 
                                    code_tbl$end[c(1, 17:36, 95)],
                                    col_names = code_tbl$variable[c(1, 17:36, 95)]), 
@@ -136,8 +147,8 @@ df23$`0000` <- NULL
 c <- as.integer(colnames(df23)[-1])
 
 # items with no observations
-d <- doc.items.part1 %>% as.integer()
-v <- paste("itm" ,d[! d %in% c], sep = "")
+d <- doc.items.part1 %>% as.integer() # item names of all
+v <- paste("itm" ,d[! d %in% c], sep = "") # 
 dd <- data.frame(matrix(nrow = nrow(df23), ncol = length(v)))
 colnames(dd) <- v
 dd$x1 <- df23$x1
@@ -153,6 +164,8 @@ rm(list = c("df.list", "l", "l1", "l2", "l21", "l22", "l23", "x"))
 data.list <- list(df1, df2, df21, df22, df23, dd)
 dfinc106 <- Reduce(function(...) merge(..., by = "x1", all = TRUE), data.list)
 dfinc106$year <- as.integer(106)
+
+###### save ###### 
 
 ###### LaF approach ######
 #a <- laf_open_fwf("AA170042/inc106.dat", column_types = c("string", "string"), column_widths = c(1, 9))
