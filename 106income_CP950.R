@@ -40,7 +40,9 @@ path_dat <- "AA170042/inc106.dat"
 df.list <- read_fwf(path_dat, fwf_positions(c(1, 79), c(80, 80), 
                                                     col_names = c("raw", "card_num")),
                     # card_num as integer
-                    col_types = cols(card_num = col_integer()))
+                    col_types = cols(card_num = col_integer())) %>% 
+        # order by card_num
+        .[order(.$`card_num`), ]
 #card 01
 l1 <- filter(df.list, card_num == 1)[ ,1]
 df1 <- lapply(l1, read_fwf, fwf_positions(code_tbl$start[c(1, 2:16, 95)], 
@@ -53,19 +55,34 @@ df1 <- do.call(bind_rows, df1)
 df1 <- df1 %>% .[order(.$`x1`), ]
 df1$card_num <- NULL
 
-# card 02-20        
-l2 <- filter(df.list, card_num %in% 2:20) %>% .[order(.$card_num), ]
-l2
-
-###### testing if else ######
-if(l2$card_num == 2){
-        test <- read_fwf(l2$raw, fwf_positions(code_tbl$start[c(1, 17:36, 95)], 
-                                               code_tbl$end[c(1, 17:36, 95)],
-                                               col_names = code_tbl$variable[c(1, 17:36, 95)]),
-                         col_types = cols(card_num = col_integer())
-                         )
+###### test 2 ######
+t <- function(c, d = c - 1){
+        if(c == df.list$card_num){
+                x <- filter(df.list, card_num == c)[ ,1]
+                tmp <- read_fwf(x$raw, fwf_positions(code_tbl$start[c(1, 17:36, 95)], 
+                                                          code_tbl$end[c(1, 17:36, 95)]
+                                                          )
+                                 #col_types = cols(card_num = col_integer())
+                )
+        }
+        else {
+                tmp <- as.tibble(matrix(ncol = 22))
+                tmp[ , 22] <- c
+        }
+        colnames(tmp) <- c("x1", paste(code_tbl$variable[17:36], d, sep = ""), "card_num")
+        tmp$card_num <- as.integer(tmp$card_num)
+        tmp$x1 <- "00000001"
+        return(tmp)
 }
+g <- t(c = 13)
+x <- filter(df.list, card_num == 2)[ , 1]
+y <- subset(df.list, card_num == 2)
+class(y)
+lapply(y$raw, read_fwf, fwf_positions(79, 80))
+file.exists(x)
 
+######
+l2 <- filter(df.list, card_num %in% 2:20)[ ,1]
 df2 <- lapply(l2, read_fwf, fwf_positions(code_tbl$start[c(1, 17:36, 95)], 
                                    code_tbl$end[c(1, 17:36, 95)],
                                    col_names = code_tbl$variable[c(1, 17:36, 95)]), 
@@ -79,7 +96,7 @@ for(i in 1:14){
     colnames(l[[i]]) <- c("x1", paste(colnames(l[[i]])[-c(1, 22)], l[[i]]$card_num[1]-1, sep = ""), 
                           "card_num")
     # remove card_num (prevent duplicated variable while merging data in the list
-    l[[i]]$card_num <- NULL
+    #l[[i]]$card_num <- NULL
 }
 # merge function and with reduce function
 df2 <- Reduce(function(...) merge(..., by = "x1", all = TRUE), l)
@@ -159,7 +176,7 @@ colnames(df23) <- c("x1", paste("itm", c, sep = ""))
 df23 <- df23 %>% .[order(.$`x1`), ]
 
 # remove
-rm(list = c("df.list", "l", "l1", "l2", "l21", "l22", "l23", "x"))
+#rm(list = c("df.list", "l", "l1", "l2", "l21", "l22", "l23", "x"))
 # merge
 data.list <- list(df1, df2, df21, df22, df23, dd)
 dfinc106 <- Reduce(function(...) merge(..., by = "x1", all = TRUE), data.list)
