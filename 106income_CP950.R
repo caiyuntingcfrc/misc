@@ -250,6 +250,7 @@ df.inc106$d6 <- sapply(df.inc106$d6, as.factor)
 itm <- grep("^itm", variables)
 df.inc106[ , itm] <- sapply(unlist(df.inc106[ , itm]), as.numeric)
 
+# view data
 fix(df.inc106)
 
 ###### time ######
@@ -257,18 +258,18 @@ proc.time() - ptm
 
 ###### save ###### 
 # .RData
-# save(df.inc106, file = "AA170042/inc106.RData")
+save(df.inc106, file = "AA170042/inc106.RData")
 # .csv format
 # write_csv(df.inc106, "inc106.csv", col_names = TRUE, na = "")
 # .sas7bdat format
 # write_sas(df.inc106, "inc106.sas7bdat")
 # .sav format
-# write_sav(df.inc106, "inc106.sav", compress = FALSE)
+write_sav(df.inc106, "inc106.sav", compress = FALSE)
 
 ###### time ######
 proc.time() - ptm
 
 ###### remove all objects ######
-rm(list = ls())
+# rm(list = ls())
 
 ###### load ######
