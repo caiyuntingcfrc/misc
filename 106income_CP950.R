@@ -2,8 +2,8 @@
 
 ###### install packages !!! one time only ######
 # Mark out lines of codes below if these packages are installed.
-p <- c("tidyverse", "docxtractr", "readtext", "haven")
-install.packages(p)
+# p <- c("tidyverse", "docxtractr", "readtext", "haven")
+# install.packages(p)
 # Mark out lines of codes below if these packages are installed.
 
 
@@ -187,62 +187,70 @@ df.inc106 <- Reduce(function(...) merge(..., by = "x1", all = TRUE), data.list)
 df.inc106$year <- as.integer(106)
 # remove
 rm(df.source, x, df.itm.all, df1, df2, df21, df22, df23, data.list)
+gc()
+
+# savefile
+save(df.inc106, file = "AA170042/inc106.RData")
+
+# load
+load(file = "AA170042/inc106.RData")
 
 ###### define class of each column ######
 variables <- colnames(df.inc106)
 
 # b1_ (character)
 b1 <- grep("^b1_", variables) 
-df.inc106[ , b1] <- as.character(df.inc106[ ,b1])
-
+df.inc106[ , b1] <- sapply(df.inc106[ , b1], as.character)
 # b4_ (numeric)
 b4 <- grep("^b4_", variables)
-df.inc106[ , b4] <- as.numeric(unlist(df.inc106[ , b4]))
+df.inc106[ , b4] <- sapply(df.inc106[ , b4], as.numeric)
 # b21_ (numeric)
 b21 <- grep("^b21_", variables)
-df.inc106[ , b21] <- as.numeric(unlist(df.inc106[ , b21]))
+df.inc106[ , b21] <- sapply(df.inc106[ , b21], as.numeric)
 # b23_ (numeric)
 b23 <- grep("^b23_", variables)
-df.inc106[ , b23] <- as.numeric(unlist(df.inc106[ , b23]))
+df.inc106[ , b23] <- sapply(df.inc106[ , b23], as.numeric)
 # b25_ (numeric)
 b25 <- grep("^b25_", variables)
-df.inc106[ , b25] <- as.numeric(unlist(df.inc106[ , b25]))
+df.inc106[ , b25] <- sapply(df.inc106[ , b25], as.numeric)
 
 # b2_, b3_ ... (factor)
 l <- paste("b", c(2:3, 5:20, 22), "_", sep = "") %>% 
         paste("|", sep = "", collapse = "") %>% paste("b24_", sep = "")
 bb <- grep(l, variables)
-df.inc106[ , bb] <- as.factor(unlist(df.inc106[ , bb]))
+df.inc106[ , bb] <- sapply(df.inc106[ , bb], as.factor)
 
 # fxx
 f <- grep("^f", variables)
 # (numeric)
-df.inc106[ , f] <- as.numeric(unlist(df.inc106[ , f]))
+df.inc106[ , f] <- sapply(df.inc106[ , f], as.numeric)
 # f57, f61 (factor)
-df.inc106$f57 <- as.factor(df.inc106$f57)
-df.inc106$f61 <- as.factor(df.inc106$f61)
+df.inc106$f57 <- sapply(df.inc106$f57, as.factor)
+df.inc106$f61 <- sapply(df.inc106$f61, as.factor)
 
 # c 
 c <- grep("^c", variables)
 # (numeric)
-df.inc106[ , c] <- as.numeric(unlist(df.inc106[ , c]))
+df.inc106[ , c] <- sapply(df.inc106[ , c], as.numeric)
 # (factor)
-df.inc106$c1 <- as.factor(df.inc106$c1)
-df.inc106$c2 <- as.factor(df.inc106$c2)
-df.inc106$c4 <- as.factor(df.inc106$c4)
+df.inc106$c1 <- sapply(df.inc106$c1, as.factor)
+df.inc106$c2 <- sapply(df.inc106$c2, as.factor)
+df.inc106$c4 <- sapply(df.inc106$c4, as.factor)
 
 # d
 d <- grep("^d", variables)
 # (numeric)
-df.inc106[ , d] <- as.numeric(unlist(df.inc106[ , d]))
+df.inc106[ , d] <- sapply(df.inc106[ , d], as.numeric)
 # (factor)
-df.inc106$d1 <- as.factor(df.inc106$d1)
-df.inc106$d5 <- as.factor(df.inc106$d5)
-df.inc106$d6 <- as.factor(df.inc106$d6)
+df.inc106$d1 <- sapply(df.inc106$d1, as.factor)
+df.inc106$d5 <- sapply(df.inc106$d5, as.factor)
+df.inc106$d6 <- sapply(df.inc106$d6, as.factor)
 
 # itm
 itm <- grep("^itm", variables)
-df.inc106[ , itm] <- as.numeric(unlist(df.inc106[ , itm]))
+df.inc106[ , itm] <- sapply(unlist(df.inc106[ , itm]), as.numeric)
+
+fix(df.inc106)
 
 ###### time ######
 proc.time() - ptm
