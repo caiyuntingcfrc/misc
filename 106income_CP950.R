@@ -2,7 +2,7 @@
 
 ###### install packages !!! one time only ######
 # Mark out lines of codes below if these packages are installed.
-# p <- c("tidyverse", "docxtractr", "readtext", "haven")
+# p <- c("tidyverse", "docxtractr", "readtext", "haven", "expss")
 # install.packages(p)
 # Mark out lines of codes below if these packages are installed.
 
@@ -15,6 +15,8 @@ library(tidyverse)
 library(docxtractr)
 library(readtext)
 library(haven)
+# expss must be loaded after haven
+library(expss)
 
 
 ptm <- proc.time()
@@ -54,7 +56,7 @@ path_dat <- "AA170042/inc106.dat"
 df.source <- read_fwf(path_dat, fwf_positions(c(1, 79), c(80, 80), 
                                                     col_names = c("raw", "card_num")),
                     # card_num as integer
-                    col_types = cols(card_num = col_integer())) %>% 
+                    col_types = cols(card_num = "i")) %>% 
         # order by card_num
         .[order(.$`card_num`), ]
 
@@ -65,10 +67,25 @@ write(x, file = y)
 df1 <- read_fwf(y, fwf_positions(code_tbl$start[c(1, 2:16, 95)], 
                                  code_tbl$end[c(1, 2:16, 95)],
                                  col_names = code_tbl$variable[c(1, 2:16, 95)]), 
-                # card number as integer
-                col_types = cols(card_num = col_integer())) 
+                # define column types (variable classes) in df1
+                col_types = cols(card_num = "i", 
+                                 a4 = "f", 
+                                 a5 = "f", 
+                                 a6 = "n", 
+                                 a7 = "c",
+                                 a8 = "n", 
+                                 a9 = "n", 
+                                 a11 = "f", 
+                                 a12 = "n", 
+                                 a13 = "n", 
+                                 a16 = "f", 
+                                 a17 = "f", 
+                                 a18 = "f", 
+                                 a19 = "n", 
+                                 a20 = "n")) 
 # bind_rows and order
 df1 <- df1 %>% .[order(.$`x1`), ]
+# remove card_num
 df1$card_num <- NULL
 
 # card 02
@@ -83,7 +100,7 @@ f2 <- function(c, d = c - 1){
                 tmp <- read_fwf(y, fwf_positions(code_tbl$start[c(1, 17:36, 95)], 
                                                  code_tbl$end[c(1, 17:36, 95)]
                                                  )
-                                #col_types = cols(card_num = col_integer())
+                                #col_types = cols(card_num = "i")
                 )
                 }
         else {
@@ -101,7 +118,8 @@ df2 <- list()
 for(i in 2:20){
         df2[[i-1]] <- f2(i)
         df2[[i-1]]$`card_num` <- NULL
-}
+        }
+
 df2 <- Reduce(function(...) merge(..., by = "x1", all = TRUE), df2)
 gc() # free up ram
 
@@ -123,7 +141,7 @@ write(x, file = y)
 df22 <- read_fwf(y, fwf_positions(code_tbl$start[c(1, 68:88)], 
                                   code_tbl$end[c(1, 68:88)],
                                   col_names = code_tbl$variable[c(1, 68:88)]), 
-                 col_types = cols(c5c = col_integer()))
+                 col_types = cols(c5c = "i"))
 # order
 df22 <- df22 %>% .[order(.$`x1`), ]
 
@@ -189,11 +207,15 @@ df.inc106$year <- as.integer(106)
 rm(df.source, x, df.itm.all, df1, df2, df21, df22, df23, data.list)
 gc()
 
-# savefile
-save(df.inc106, file = "AA170042/inc106.RData")
+###### factor label and values ######
+s <- which(!(code_tbl$level == ""))
+lev <- list() #[1-7], a_xx; [8-22], b_xx; [23-24], f; [25-27], c; [28-30], d
+lab <- list() #[1-7], a_xx; [8-22], b_xx; [23-24], f; [25-27], c; [28-30], d
+for(i in 1:length(s)){
+        lev[[i]] <- code_tbl$level[s[i]] %>% str_extract_all("[0-9]+") %>% .[[1]]
+        lab[[i]] <- code_tbl$level[s[i]] %>% str_split("[0-9]+\\. ") %>% .[[1]] %>% .[-1]
+}
 
-# load
-load(file = "AA170042/inc106.RData")
 
 ###### define class of each column ######
 variables <- colnames(df.inc106)
@@ -225,33 +247,33 @@ f <- grep("^f", variables)
 # (numeric)
 df.inc106[ , f] <- sapply(df.inc106[ , f], as.numeric)
 # f57, f61 (factor)
-df.inc106$f57 <- sapply(df.inc106$f57, as.factor)
-df.inc106$f61 <- sapply(df.inc106$f61, as.factor)
+df.inc106$f57 <- sapply(df.inc106$f57, factor, levels = lev[[23]])
+df.inc106$f61 <- sapply(df.inc106$f61, factor, levels = lev[[24]])
 
 # c 
 c <- grep("^c", variables)
 # (numeric)
 df.inc106[ , c] <- sapply(df.inc106[ , c], as.numeric)
 # (factor)
-df.inc106$c1 <- sapply(df.inc106$c1, as.factor)
-df.inc106$c2 <- sapply(df.inc106$c2, as.factor)
-df.inc106$c4 <- sapply(df.inc106$c4, as.factor)
+df.inc106$c1 <- sapply(df.inc106$c1, factor, levels = lev[[25]])
+df.inc106$c2 <- sapply(df.inc106$c2, factor, levels = lev[[26]])
+df.inc106$c4 <- sapply(df.inc106$c4, factor, levels = lev[[27]])
 
 # d
 d <- grep("^d", variables)
 # (numeric)
 df.inc106[ , d] <- sapply(df.inc106[ , d], as.numeric)
 # (factor)
-df.inc106$d1 <- sapply(df.inc106$d1, as.factor)
-df.inc106$d5 <- sapply(df.inc106$d5, as.factor)
-df.inc106$d6 <- sapply(df.inc106$d6, as.factor)
+df.inc106$d1 <- sapply(df.inc106$d1, factor, levels = lev[[28]])
+df.inc106$d5 <- sapply(df.inc106$d5, factor, levels = lev[[29]])
+df.inc106$d6 <- sapply(df.inc106$d6, factor, levels = lev[[30]])
 
 # itm
 itm <- grep("^itm", variables)
 df.inc106[ , itm] <- sapply(unlist(df.inc106[ , itm]), as.numeric)
 
 # view data
-fix(df.inc106)
+# fix(df.inc106)
 
 ###### time ######
 proc.time() - ptm
@@ -259,17 +281,16 @@ proc.time() - ptm
 ###### save ###### 
 # .RData
 save(df.inc106, file = "AA170042/inc106.RData")
+save(code_tbl, file = "AA170042/code_tbl.RData")
 # .csv format
 # write_csv(df.inc106, "inc106.csv", col_names = TRUE, na = "")
 # .sas7bdat format
 # write_sas(df.inc106, "inc106.sas7bdat")
 # .sav format
-write_sav(df.inc106, "inc106.sav", compress = FALSE)
+# write_sav(df.inc106, "inc106.sav", compress = TRUE)
 
 ###### time ######
 proc.time() - ptm
 
 ###### remove all objects ######
 # rm(list = ls())
-
-###### load ######
