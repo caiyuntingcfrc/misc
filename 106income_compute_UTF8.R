@@ -19,7 +19,6 @@ st_options(style = "simple",
            round.digits = 4,
            ctable.prop = "c")
 
-
 #add new variabel by structure of families
 df <- df.inc106 %>% mutate(
         SF = case_when(a18 %in% c("101", "102") ~ 1, # single
