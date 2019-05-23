@@ -26,7 +26,7 @@ ptm <- proc.time()
 ##### create the codebook ######
 # codebook
 # file is in the default working dirctory
-path_code <- "AA170042/code106.docx" 
+path_code <- "AA170035//code99_UTF8.docx" 
 code_tbl <- read_docx(path_code) %>% docx_extract_tbl() %>% .[complete.cases(.), ]
 # add row: card_num
 code_tbl <- rbind(code_tbl, c(NA, "card_num", "#/79-80", NA, NA, NA))
@@ -50,24 +50,24 @@ code_tbl$`end` <- code_tbl$`card_pos` %>%
 code_tbl$`end` <- with(code_tbl, if_else(is.na(`end`), `start`, `end`))
 
 ##### names of item_xxx ######
-doc.text.parts <- readtext(path_code)$`text` %>% 
+doc.text.parts <- readtext(path_code, encoding = "big5")$`text` %>% 
         strsplit("\n") %>% .[[1]]
-doc.items <- grep("*:", doc.text.parts, value = TRUE) %>% 
-        .[-c(1:12, 808:810)]
+doc.items <- grep("¡G", doc.text.parts, value = TRUE) %>% 
+        .[-c(1:662, 1468:1515)]
 # item numbers
-doc.items.part1 <- strsplit(doc.items, ":") %>% 
+doc.items.part1 <- strsplit(doc.items, "¡G") %>% 
         unlist() %>% 
         .[2 * (1:length(doc.text.parts)) -1 ] %>% 
         .[!is.na(.)]
 # item contents
-doc.items.part2 <- strsplit(doc.items, ":") %>% 
+doc.items.part2 <- strsplit(doc.items, "¡G") %>% 
         unlist() %>% 
         .[2 * (1:length(doc.text.parts))] %>% 
         .[!is.na(.)]
 
 ##### data processing and manipulation ######
 # data raw and card_num
-path_dat <- "AA170042/inc106.dat"
+path_dat <- "AA170040//inc104.dat"
 df.source <- read_fwf(path_dat, fwf_positions(start = c(1, 79), 
                                               end = c(80, 80), 
                                               col_names = c("raw", "card_num")
@@ -143,7 +143,7 @@ df2 <- df2 %>% convert(chr(contains("b1_")),
                        num(contains("b4_")), 
                        num(contains("b21_")), 
                        num(contains("b23_")), 
-                       num(contains("b25_")), 
+                       num(contains("b25_")) 
                        )
 # b2_, b3_ ... (factor)
 variables <- colnames(df2)
@@ -167,10 +167,10 @@ x <- filter(df.source, card_num == 21) %>% .[ ,1] %>% .$raw
 y <- tempfile("tmp", fileext = ".dat")
 write(x, file = y)
 # code_tbl[37:67]
-df21 <- read_fwf(y, fwf_positions(code_tbl$`start`[c(1, 37:67)], 
-                                  code_tbl$`end`[c(1, 37:67)],
+df21 <- read_fwf(y, fwf_positions(code_tbl$`start`[c(1, 37:69)], 
+                                  code_tbl$`end`[c(1, 37:69)],
                                   # variable names
-                                  col_names = code_tbl$`variable`[c(1, 37:67)]), 
+                                  col_names = code_tbl$`variable`[c(1, 37:69)]), 
                  # define column types
                  cols(x1 = "c", f57 = "f", f61 = "f", .default = "n")
                  ) %>% 
@@ -186,10 +186,10 @@ x <- filter(df.source, card_num == 22) %>% .[ ,1] %>% .$raw
 y <- tempfile("tmp", fileext = ".dat")
 write(x, file = y)
 # code_tbl[68:88]
-df22 <- read_fwf(y, fwf_positions(code_tbl$`start`[c(1, 68:88)], 
-                                  code_tbl$`end`[c(1, 68:88)],
+df22 <- read_fwf(y, fwf_positions(code_tbl$`start`[c(1, 70:90)], 
+                                  code_tbl$`end`[c(1, 70:90)],
                                   # variable names
-                                  col_names = code_tbl$`variable`[c(1, 68:88)]), 
+                                  col_names = code_tbl$`variable`[c(1, 70:90)]), 
                  # define column types
                  col_types = cols(x1 = "c", c1 = "f", c2 = "f", 
                                   c4 = "f", d1 = "f", d5 = "f", 
@@ -269,11 +269,11 @@ gc()
 
 # merge
 data.list <- list(df1, df2, df21, df22, df23)
-df.inc106 <- Reduce(function(...) left_join(..., by = "x1"), data.list)
+df.inc104 <- Reduce(function(...) left_join(..., by = "x1"), data.list)
 # add year column
-df.inc106$year <- as.integer(106)
+df.inc104$year <- as.integer(104)
 # remove
-# rm(df.source, x, df.itm.all, df1, df2, df21, df22, df23, data.list)
+rm(df.source, x, df.itm.all, df1, df2, df21, df22, df23, data.list)
 # free up memory
 gc()
 
@@ -286,13 +286,10 @@ for(i in 1:length(s)){
         lab[[i]] <- code_tbl$level[s[i]] %>% str_split("[0-9]+\\. ") %>% .[[1]] %>% .[-1]
         }
 
-##### time ######
-proc.time() - ptm
-
 ##### save ###### 
 # .RData
-# save(df.inc106, file = "AA170042/inc106_rev.RData")
-# save(code_tbl, file = "AA170042/code_tbl.RData")
+save(df.inc104, file = "AA170040/inc104.RData")
+save(code_tbl, file = "AA170040//code_tbl_104.RData")
 # .csv format
 # write_csv(df.inc106, "inc106.csv", col_names = TRUE, na = "")
 # .sas7bdat format
