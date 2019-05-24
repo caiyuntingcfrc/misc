@@ -1,5 +1,7 @@
 ##### author: CAI YUN-TING ######
 
+##### The Survey of Family Income and Expenditure, 2010 #####
+
 ##### prep and options #####
 # set working directory
 setwd("D:/R_wd/")
@@ -26,14 +28,14 @@ ptm <- proc.time()
 ##### create the codebook ######
 # codebook
 # file is in the default working dirctory
-path_code <- "AA170035//code99_UTF8.docx" 
+path_code <- "AA170035//code99.docx" 
 code_tbl <- read_docx(path_code) %>% docx_extract_tbl() %>% .[complete.cases(.), ]
 # add row: card_num
 code_tbl <- rbind(code_tbl, c(NA, "card_num", "#/79-80", NA, NA, NA))
 # colnames
 colnames(code_tbl) <- c("q_num", "variable", "card_pos", "label", "level", "note")
-# variable b1_# - b19_#
-code_tbl$`variable`[17:36] <- code_tbl$`variable`[17:36] %>% 
+# variable b1_# - b25_#
+code_tbl$`variable`[18:38] <- code_tbl$`variable`[18:38] %>% 
         str_split("#", simplify = TRUE) %>%
         .[ , 1] %>% as.character()
 # start
@@ -50,10 +52,11 @@ code_tbl$`end` <- code_tbl$`card_pos` %>%
 code_tbl$`end` <- with(code_tbl, if_else(is.na(`end`), `start`, `end`))
 
 ##### names of item_xxx ######
-doc.text.parts <- readtext(path_code, encoding = "big5")$`text` %>% 
+doc.text.parts <- readtext(path_code)$`text` %>% 
         strsplit("\n") %>% .[[1]]
+# items: [24:828]
 doc.items <- grep("¡G", doc.text.parts, value = TRUE) %>% 
-        .[-c(1:662, 1468:1515)]
+        .[24:828]
 # item numbers
 doc.items.part1 <- strsplit(doc.items, "¡G") %>% 
         unlist() %>% 
@@ -67,7 +70,7 @@ doc.items.part2 <- strsplit(doc.items, "¡G") %>%
 
 ##### data processing and manipulation ######
 # data raw and card_num
-path_dat <- "AA170040//inc104.dat"
+path_dat <- "AA170035/inc99.dat"
 df.source <- read_fwf(path_dat, fwf_positions(start = c(1, 79), 
                                               end = c(80, 80), 
                                               col_names = c("raw", "card_num")
@@ -86,13 +89,13 @@ y <- tempfile("tp", fileext = ".dat")
 # write the tempfile
 write(x, file = y)
 # read card 1
-df1 <- read_fwf(y, fwf_positions(code_tbl$`start`[1:16], 
-                                 code_tbl$`end`[1:16],
-                                 col_names = code_tbl$`variable`[1:16]), 
+df1 <- read_fwf(y, fwf_positions(code_tbl$`start`[2:17], 
+                                 code_tbl$`end`[2:17],
+                                 col_names = code_tbl$`variable`[2:17]), 
                 # define column types (variable classes) in df1
                 col_types = cols(x1 = "c", id = "c", 
                                  a4 = "f", a5 = "f", a6 = "n", 
-                                 a7 = "c", a8 = "n", a9 = "n", 
+                                 a7 = "f", a8 = "n", a9 = "n", 
                                  a11 = "f", a12 = "n", a13 = "n", 
                                  a16 = "f", a17 = "f", a18 = "f", 
                                  a19 = "n", a20 = "n")
@@ -117,15 +120,15 @@ f2 <- function(c, d = c - 1) {
                 y <- tempfile("tmp", fileext = ".dat")
                 write(x, file = y)
                 # read file
-                tmp <- read_fwf(y, fwf_positions(code_tbl$`start`[c(1, 17:36)], 
-                                                 code_tbl$`end`[c(1, 17:36)])
+                tmp <- read_fwf(y, fwf_positions(code_tbl$`start`[c(2, 18:38)], 
+                                                 code_tbl$`end`[c(2, 18:38)])
                                 )
-                } else {tmp <- matrix(ncol = 21) %>% as_tibble(.name_repair = NULL)
+                } else {tmp <- matrix(ncol = 22) %>% as_tibble(.name_repair = NULL)
                         tmp[ , 1] <- "00000001"        
                         }
         # name the columns (b1_1, b1_2, b1_3 ......)
         # eg. b1_# , card_num == 2, then # == 1, get b1_1 (#: 1:19)
-        colnames(tmp) <- c("x1", paste(code_tbl$`variable`[17:36], d, sep = ""))
+        colnames(tmp) <- c("x1", paste(code_tbl$`variable`[18:38], d, sep = ""))
         # tmp$card_num <- as.integer(tmp$`card_num`)
         return(tmp)
         }
@@ -139,7 +142,8 @@ for(i in 2:20) {
 df2 <- Reduce(function(...) left_join(..., by = "x1"), df2)
 # column types
 # b1_, b4_, b21_, b23_, b25_
-df2 <- df2 %>% convert(chr(contains("b1_")),
+df2 <- df2 %>% convert(chr(x1),
+                       chr(contains("b1_")),
                        num(contains("b4_")), 
                        num(contains("b21_")), 
                        num(contains("b23_")), 
@@ -147,12 +151,12 @@ df2 <- df2 %>% convert(chr(contains("b1_")),
                        )
 # b2_, b3_ ... (factor)
 variables <- colnames(df2)
-l <- paste("b", c(2:3, 5, 8:10, 12:20, 22), "_", sep = "") %>% 
+l <- paste("b", c(2:3, 5, 8:16, 19:20, 22), "_", sep = "") %>% 
         paste("|", sep = "", collapse = "") %>% paste("b24_", sep = "")
 bb <- grep(l, variables)
 # mutate_if
-df2[ , bb] %<>% mutate_if(is.character, as.factor)
-
+df2[ , bb] %<>% mutate_if(is.character, as.factor) %>% 
+        mutate_if(is.numeric, as.factor)
 
 # benchmark
 # microbenchmark(a <- Reduce(function(...) left_join(..., by = "x1"), df2), unit = "s")
@@ -166,13 +170,14 @@ gc()
 x <- filter(df.source, card_num == 21) %>% .[ ,1] %>% .$raw
 y <- tempfile("tmp", fileext = ".dat")
 write(x, file = y)
-# code_tbl[37:67]
-df21 <- read_fwf(y, fwf_positions(code_tbl$`start`[c(1, 37:69)], 
-                                  code_tbl$`end`[c(1, 37:69)],
+# code_tbl[39:71]
+df21 <- read_fwf(y, fwf_positions(code_tbl$`start`[c(2, 39:71)], 
+                                  code_tbl$`end`[c(2, 39:71)],
                                   # variable names
-                                  col_names = code_tbl$`variable`[c(1, 37:69)]), 
+                                  col_names = code_tbl$`variable`[c(2, 39:71)]), 
                  # define column types
-                 cols(x1 = "c", f57 = "f", f61 = "f", .default = "n")
+                 cols(x1 = "c", f57 = "f", f58 = "f", 
+                      f61 = "f", f62 = "f", .default = "n")
                  ) %>% 
         # order by x1
         .[order(.$`x1`), ]
@@ -185,15 +190,15 @@ gc()
 x <- filter(df.source, card_num == 22) %>% .[ ,1] %>% .$raw
 y <- tempfile("tmp", fileext = ".dat")
 write(x, file = y)
-# code_tbl[68:88]
-df22 <- read_fwf(y, fwf_positions(code_tbl$`start`[c(1, 70:90)], 
-                                  code_tbl$`end`[c(1, 70:90)],
+# code_tbl[72:93]
+df22 <- read_fwf(y, fwf_positions(code_tbl$`start`[c(2, 72:93)], 
+                                  code_tbl$`end`[c(2, 72:93)],
                                   # variable names
-                                  col_names = code_tbl$`variable`[c(1, 70:90)]), 
+                                  col_names = code_tbl$`variable`[c(2, 72:93)]), 
                  # define column types
-                 col_types = cols(x1 = "c", c1 = "f", c2 = "f", 
-                                  c4 = "f", d1 = "f", d5 = "f", 
-                                  d6 = "f", .default = "n")) %>% 
+                 col_types = cols(x1 = "c", c15 = "n", c16 = "n",
+                                  c17 = "n", c18 = "n", c19 = "n", 
+                                  c22 = "n", .default = "f")) %>% 
         # order by x1
         .[order(.$`x1`), ]
 
@@ -248,7 +253,7 @@ df23 <- df23 %>% spread(key = "item", value = "exp")
 df23 <- df23 %>% select( - one_of("0000"))
 
 ##### items with no observations #####
-# df23(635 variables) but all items are 795
+# df23(623 variables) but all items are 805
 # names of all the items
 colnames(df23)[-1] <- colnames(df23)[-1] %>% as.integer() %>% paste("itm", ., sep = "")
 itms_all <- doc.items.part1 %>% as.integer() %>% paste("itm" , ., sep = "")
@@ -259,21 +264,23 @@ df.itm.all <- matrix("NA", nrow = nrow(df23), ncol = length(itms_all)) %>%
 df.itm.all$`x1` <- df23$`x1`
 # name the columns with all item names
 colnames(df.itm.all) <- c(itms_all, "x1")
-df23 <- df23 %>% left_join(df.itm.all)
-# order
-df23 <- df23 %>% .[order(.$`x1`), ]
-# column types (hablar::convert)
-df23 <- df23 %>% convert(chr(x1), num(contains("itm")))
+# merge
+df23 <- df23 %>% left_join(df.itm.all) %>% 
+        # column types (hablar::convert)
+        convert(chr(x1), num(contains("itm"))) %>% 
+        # order
+        .[order(.$`x1`), ]
 # free up ram
 gc()
 
-# merge
+##### merge #####
 data.list <- list(df1, df2, df21, df22, df23)
-df.inc104 <- Reduce(function(...) left_join(..., by = "x1"), data.list)
+df.inc99 <- Reduce(function(...) left_join(..., by = "x1"), data.list)
 # add year column
-df.inc104$year <- as.integer(104)
+df.inc99$year <- as.integer(99)
 # remove
 rm(df.source, x, df.itm.all, df1, df2, df21, df22, df23, data.list)
+
 # free up memory
 gc()
 
@@ -288,8 +295,8 @@ for(i in 1:length(s)){
 
 ##### save ###### 
 # .RData
-save(df.inc104, file = "AA170040/inc104.RData")
-save(code_tbl, file = "AA170040//code_tbl_104.RData")
+save(df.inc99, file = "AA170035/inc99.RData")
+save(code_tbl, file = "AA170035/code_tbl_99.RData")
 # .csv format
 # write_csv(df.inc106, "inc106.csv", col_names = TRUE, na = "")
 # .sas7bdat format

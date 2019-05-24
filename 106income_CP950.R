@@ -1,4 +1,5 @@
 ##### author: CAI YUN-TING ######
+##### The Survey of Family Income and Expenditure, 2017 #####
 
 ##### prep and options #####
 # set working directory
@@ -92,7 +93,7 @@ df1 <- read_fwf(y, fwf_positions(code_tbl$`start`[1:16],
                 # define column types (variable classes) in df1
                 col_types = cols(x1 = "c", id = "c", 
                                  a4 = "f", a5 = "f", a6 = "n", 
-                                 a7 = "c", a8 = "n", a9 = "n", 
+                                 a7 = "f", a8 = "n", a9 = "n", 
                                  a11 = "f", a12 = "n", a13 = "n", 
                                  a16 = "f", a17 = "f", a18 = "f", 
                                  a19 = "n", a20 = "n")
@@ -139,11 +140,12 @@ for(i in 2:20) {
 df2 <- Reduce(function(...) left_join(..., by = "x1"), df2)
 # column types
 # b1_, b4_, b21_, b23_, b25_
-df2 <- df2 %>% convert(chr(contains("b1_")),
+df2 <- df2 %>% convert(chr(x1), 
+                       chr(contains("b1_")),
                        num(contains("b4_")), 
                        num(contains("b21_")), 
                        num(contains("b23_")), 
-                       num(contains("b25_")), 
+                       num(contains("b25_")) 
                        )
 # b2_, b3_ ... (factor)
 variables <- colnames(df2)
@@ -151,7 +153,8 @@ l <- paste("b", c(2:3, 5, 8:10, 12:20, 22), "_", sep = "") %>%
         paste("|", sep = "", collapse = "") %>% paste("b24_", sep = "")
 bb <- grep(l, variables)
 # mutate_if
-df2[ , bb] %<>% mutate_if(is.character, as.factor)
+df2[ , bb] %<>% mutate_if(is.character, as.factor) %>% 
+        mutate_if(is.numeric, as.factor)
 
 
 # benchmark
@@ -267,13 +270,14 @@ df23 <- df23 %>% convert(chr(x1), num(contains("itm")))
 # free up ram
 gc()
 
-# merge
+##### merge ####
 data.list <- list(df1, df2, df21, df22, df23)
 df.inc106 <- Reduce(function(...) left_join(..., by = "x1"), data.list)
 # add year column
 df.inc106$year <- as.integer(106)
 # remove
-# rm(df.source, x, df.itm.all, df1, df2, df21, df22, df23, data.list)
+rm(df.source, x, df.itm.all, df1, df2, df21, df22, df23, data.list)
+
 # free up memory
 gc()
 
@@ -286,13 +290,10 @@ for(i in 1:length(s)){
         lab[[i]] <- code_tbl$level[s[i]] %>% str_split("[0-9]+\\. ") %>% .[[1]] %>% .[-1]
         }
 
-##### time ######
-proc.time() - ptm
-
 ##### save ###### 
 # .RData
-# save(df.inc106, file = "AA170042/inc106_rev.RData")
-# save(code_tbl, file = "AA170042/code_tbl.RData")
+save(df.inc106, file = "AA170042/inc106_rev.RData")
+save(code_tbl, file = "AA170042/code_tbl_106.RData")
 # .csv format
 # write_csv(df.inc106, "inc106.csv", col_names = TRUE, na = "")
 # .sas7bdat format
