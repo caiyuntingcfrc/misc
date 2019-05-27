@@ -248,7 +248,7 @@ for(i in 1:10) {
 # spread (transpose)
 df23 <- df23 %>% spread(key = "item", value = "exp")
 # remove column `0000`
-df23 <- df23 %>% select( - one_of("0000"))
+df23 <- df23 %>% select( - one_of("0000") )
 
 ##### items with no observations #####
 # df23(635 variables) but all items are 795
