@@ -145,7 +145,6 @@ df2 <- Reduce(function(...) left_join(..., by = "x1"), df2)
 # column types
 # b1_, b4_, b21_, b23_, b25_
 df2 <- df2 %>% convert(chr(x1),
-                       chr(contains("b1_")),
                        num(contains("b4_")), 
                        num(contains("b17_")), 
                        num(contains("b18_")), 
@@ -158,7 +157,7 @@ df2 <- df2 %>% convert(chr(x1),
                        )
 # b2_, b3_ ... (factor)
 variables <- colnames(df2)
-l <- paste("b", c(2:3, 5:16, 19:20, 22, 24), "_", sep = "") %>% 
+l <- paste("b", c(1:3, 5:16, 19:20, 22, 24), "_", sep = "") %>% 
         paste("|", sep = "", collapse = "") %>% paste("b26_", sep = "")
 bb <- grep(l, variables)
 # mutate_if
