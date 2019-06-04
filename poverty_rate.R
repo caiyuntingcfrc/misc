@@ -6,10 +6,8 @@ setwd("D:/R_wd/")
 # clear objects
 rm(list = ls())
 # load the packages
-l <- c("tidyverse", "DescTools", "ggplot2", 
-       "car", "userfriendlyscience", "summarytools", 
-       "magrittr", "haven", "gridExtra", 
-       "microbenchmark")
+l <- c("tidyverse", "magrittr", "haven", 
+       "gridExtra", "summarytools")
 lapply(l, require, character.only= TRUE)
 rm(l)
 # options
@@ -24,6 +22,141 @@ st_options(style = "simple",
 load("AA170025/code_tbl_89.RData")
 # data file
 load("AA170025/inc89.RData")
+
+##### function -- poverty rate #####
+poverty_rate <- function(df, weight, 
+                         n.all = "a8", sex = "a7", aged = "a19", 
+                         type = "a18", n.adult = "a12") {
+        
+        ##### equivalised income #####
+        n <- df[[n.all]]
+        df <- df %>% 
+                mutate(sqrt_scale = sqrt(n),
+                       indi_inc = (itm400 - itm600) / sqrt_scale)
+        
+        ##### poverty threshold #####
+        a <- df[[weight]]
+        b <- df[["indi_inc"]]
+        # replicate income by weight
+        x <- b[rep(1:length(b), times = a)]
+        # calculate the median and poverty threshold
+        t <- median(x, na.rm = TRUE) * 0.5
+        
+        ##### function prop #####
+        p.prop <- function(df, w) {
+                # weight
+                a <- df[[w]]
+                b <- df[["indi_inc"]]
+                # replicate income by weight
+                x <- b[rep(1:length(b), times = a)]
+                y <- x < t
+                p <- length(y[y == TRUE]) / length(y) * 100
+                return(p)
+                }
+        
+        ##### prop overall households #####
+        d <- df
+        p.all_house <- p.prop(df = d, w = weight)
+        
+        ##### prop male headed household #####
+        d <- df[df[[sex]] == 1, ]
+        p.m_headed_house <- p.prop(df = d, w = weight)
+        
+        ##### prop female headed household #####
+        d <- df[df[[sex]] == 2, ]
+        p.f_headed_house <- p.prop(df = d, w = weight)
+        
+        ##### prop house with aged #####
+        d <- df[df[[aged]] >= 1, ]
+        p.with_aged <- p.prop(df = d, w = weight)
+        
+        ##### prop house without aged #####
+        d <- df[df[[aged]] < 1, ]
+        p.without_aged <- p.prop(df = d, w = weight)
+        
+        ##### overall single parent households #####
+        # children are under 18
+        d <- df
+        l <- grep("^b4_", names(df))
+        w <- d[ , l] < 18
+        d <- d[unique(which(w, arr.ind = TRUE)[ , 1]), ]
+        # structure of families: single parent
+        d <- d %>% 
+                .[.[[type]] %in% c(321, 322, 331, 332), ] %>% 
+                # with children
+                .[.[[n.all]] - .[[n.adult]] > 0, ]
+        p.single_parent <- p.prop(df = d, w = weight)
+        
+        ##### male single parent households #####
+        # children are under 18
+        d <- df
+        l <- grep("^b4_", names(d))
+        w <- d[ , l] < 18
+        d <- d[unique(which(w, arr.ind = TRUE)[ , 1]), ]
+        d <- d %>% 
+                # male head 
+                .[.[[sex]] == 1, ] %>% 
+                # structure of families: single parent
+                .[.[[type]] %in% c(321, 322, 331, 332), ] %>% 
+                # with children
+                .[.[[n.all]] - .[[n.adult]] > 0, ]
+        p.m_single_parent <- p.prop(df = d, w = weight)
+        
+        ##### female single parent households #####
+        # children are under 18
+        d <- df
+        l <- grep("^b4_", names(d))
+        w <- d[ , l] < 18
+        d <- d[unique(which(w, arr.ind = TRUE)[ , 1]), ]
+        
+        d <- d %>% 
+                # female head 
+                .[.[[sex]] == 2, ] %>% 
+                # structure of families: single parent
+                .[.[[type]] %in% c(321, 322, 331, 332), ] %>% 
+                # with children
+                .[.[[n.all]] - .[[n.adult]] > 0, ]
+        p.f_single_parent <- p.prop(df = d, w = weight)
+        
+        ##### overall populations #####
+        d <- df
+        a <- d[["indi_inc"]]
+        b <- d[[n.all]]
+        c <- d[[weight]]
+        # weight by n of people in the house
+        x <- a[rep(1:length(a), times = b)]
+        y <- c[rep(1:length(c), times = b)]
+        # weight by weight
+        z <- x[rep(1:length(x), times = y)]
+        # below threshold
+        r <- z < t
+        # calculate the proportion
+        p.all_population <- length(r[r == TRUE]) / length(r) * 100
+        
+        ##### overall aged #####
+        d <- df
+        a <- d[["indi_inc"]]
+        b <- d[[aged]]
+        c <- d[[weight]]
+        # weight by n of people in the house
+        x <- a[rep(1:length(a), times = b)]
+        y <- c[rep(1:length(c), times = b)]
+        # weight by weight
+        z <- x[rep(1:length(x), times = y)]
+        # below threshold
+        r <- z < t
+        # calculate the proportion
+        p.all_elder <- length(r[r == TRUE]) / length(r) * 100
+        
+        ##### return the results #####
+        l <- c(p.all_house, p.m_headed_house, p.f_headed_house, 
+               p.with_aged, p.without_aged, p.single_parent, 
+               p.m_single_parent, p.f_single_parent, p.all_population, 
+               p.all_elder)
+        return(l)
+        }
+# test the function
+poverty_rate(df = df.inc89, weight = "a21")
 
 ##### Equivalised income #####
 df.inc89 <- df.inc89 %>% 
@@ -64,8 +197,6 @@ p.prop <- function(df, w, inc, m) {
         b <- df[[inc]]
         # replicate income by weight
         x <- b[rep(1:length(b), times = a)]
-        y <- x < m * 0.5
-        # calculate percentage
         p <- length(y[y == TRUE]) / length(y) * 100
         return(p)
         }
