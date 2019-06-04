@@ -8,7 +8,8 @@ rm(list = ls())
 # load the packages
 l <- c("tidyverse", "DescTools", "ggplot2", 
        "car", "userfriendlyscience", "summarytools", 
-       "magrittr", "haven", "gridExtra")
+       "magrittr", "haven", "gridExtra", 
+       "microbenchmark")
 lapply(l, require, character.only= TRUE)
 rm(l)
 # options
@@ -18,7 +19,6 @@ st_options(style = "simple",
            round.digits = 4,
            ctable.prop = "c")
 
-##### 89 #####
 ##### load the RData file #####
 # code book
 load("AA170025/code_tbl_89.RData")
@@ -116,38 +116,64 @@ p_without_aged <- p.prop(df, "a21", "indi_inc", m)
 
 ##### overall single-parent families ######
 df <- df.inc89 %>% 
-        filter_at(vars(starts_with("b4_")), all_vars(. < 18))
+        # single parent families
+        filter(a18 %in% c(321, 322, 331, 332)) %>% 
+        # number of children is larger than 0
+        filter((a8 - a12) != 0) %>% 
+        # with children that are under 18
+        filter_at(vars(starts_with("b4_")), any_vars(. < 18))
 p_single_parent <- p.prop(df, "a21", "indi_inc", m)
 
-##### test #####
-df <- df.inc89
-df <- df %>% filter_at(., vars(starts_with("b1_")), any_vars(. == vars(starts_with("b2_"))))
-
-
-a <- df.inc89 %>% 
-        select(starts_with("b2_"))
-b <- df.inc89 %>% 
-        select(starts_with("b4_"))
-x <- a[ , 1] == "03" & b[ , 1] < 18
-x <- ((a == "03") & (b < 18))
 ##### male single-parent families ######
 df <- df.inc89 %>% 
+        # male head
         filter(a7 == 1) %>% 
-        filter(b16_1 %in% c(91, 94, 95, 96)) %>% 
-        filter_at(vars(starts_with("b4_")), any_vars(. < 18)) %>% 
-        filter(a18 %in% c(321, 322))
+        # single parent families
+        filter(a18 %in% c(321, 322, 331, 332)) %>% 
+        # number of children is larger than 0
+        filter((a8 - a12) > 0) %>% 
+        # with children that are under 18
+        filter_at(vars(starts_with("b4_")), any_vars(. < 18))
 p_single_male_parent <- p.prop(df, "a21", "indi_inc", m)
 
 ##### female single-parent families ######
 df <- df.inc89 %>% 
+        # female head
         filter(a7 == 2) %>% 
-        filter(b16_1 %in% c(91, 94, 95, 96)) %>% 
-        filter_at(vars(starts_with("b4_")), any_vars(. < 18)) %>% 
-        filter(a18 %in% c(321, 322))
+        filter(a18 %in% c(321, 322, 331, 332)) %>% 
+        filter((a8 - a12) > 0) %>% 
+        filter_at(vars(starts_with("b4_")), any_vars(. < 18))
 p_single_female_parent <- p.prop(df, "a21", "indi_inc", m)
 
-##### test ####
-df <- df.inc89 %>% select(starts_with("b2_"))
+##### overall population #####
+df <- df.inc89
+a <- df[["indi_inc"]]
+b <- df[["a8"]]
+c <- df[["a21"]]
+# weight by n of people in the house
+x <- a[rep(1:length(a), times = b)]
+y <- c[rep(1:length(c), times = b)]
+# weight by weight
+z <- x[rep(1:length(x), times = y)]
+# below threshold
+r <- z < m * 0.5
+# calculate the proportion
+p_overall <- length(r[r == TRUE]) / length(r) * 100
+
+##### elderly population #####
+df <- df.inc89
+a <- df[["indi_inc"]]
+b <- df[["a19"]]
+c <- df[["a21"]]
+# weight by n of people in the house
+x <- a[rep(1:length(a), times = b)]
+y <- c[rep(1:length(c), times = b)]
+# weight by weight
+z <- x[rep(1:length(x), times = y)]
+# below threshold
+r <- z < m * 0.5
+# calculate the proportion
+p_elderly <- length(r[r == TRUE]) / length(r) * 100
 
 # d <- bind_rows(p_all, p_m_head, p_f_head,
 #                p_with_aged, p_without_aged,
