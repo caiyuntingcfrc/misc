@@ -3,17 +3,20 @@
 ##### The Survey of Family Income and Expenditure, 2005 #####
 ##### prep and options #####
 # set working directory
-setwd("D:/R_wd/")
-
-# clear objects
-rm(list = ls())
+setwd("~/R_wd/")
 
 # loading packages
 # expss must be loaded after haven
-l <- c("tidyverse", "docxtractr", "readtext", 
-       "haven", "expss", "microbenchmark", "hablar")
-lapply(l, require, character.only = TRUE)
-rm(l)
+list.packages <- c("tidyverse", "docxtractr", "readtext", 
+                   "haven", "expss", "microbenchmark", "hablar")
+# check if the packages are installed
+new.packages <- list.packages[!(list.packages %in% installed.packages()[ , "Package"])]
+# install new packages
+if(length(new.packages)) install.packages(new.packages)
+# load the packages
+lapply(list.packages, require, character.only = TRUE)
+# remove lists
+rm(list.packages, new.packages)
 
 # options
 options(readr.show_progress = TRUE)
@@ -28,41 +31,41 @@ ptm <- proc.time()
 # codebook
 # file is in the default working dirctory
 path_code <- "AA170025/code89.docx" 
-code_tbl <- read_docx(path_code) %>% docx_extract_tbl() %>% .[complete.cases(.), ]
+code_tbl_89 <- read_docx(path_code) %>% docx_extract_tbl() %>% .[complete.cases(.), ]
 # add row: card_num
-code_tbl <- rbind(code_tbl, c(NA, "card_num", "#/79-80", NA, NA, NA))
+code_tbl_89 <- rbind(code_tbl_89, c(NA, "card_num", "#/79-80", NA, NA, NA))
 # colnames
-colnames(code_tbl) <- c("q_num", "variable", "card_pos", "label", "level", "note")
+colnames(code_tbl_89) <- c("q_num", "variable", "card_pos", "label", "level", "note")
 # variable b1_# - b25_#
-code_tbl$`variable`[26:54] <- code_tbl$`variable`[26:54] %>% 
+code_tbl_89$`variable`[26:54] <- code_tbl_89$`variable`[26:54] %>% 
         str_split("#", simplify = TRUE) %>%
         .[ , 1] %>% as.character()
 # start
-code_tbl$`start` <- code_tbl$`card_pos` %>% 
+code_tbl_89$`start` <- code_tbl_89$`card_pos` %>% 
         str_split("/", simplify = TRUE) %>% 
         .[ , 2] %>% str_split("-", simplify = TRUE) %>% 
         .[ ,1] %>% as.integer()
 # end
-code_tbl$`end` <- code_tbl$`card_pos` %>% 
+code_tbl_89$`end` <- code_tbl_89$`card_pos` %>% 
         str_split("/", simplify = TRUE) %>% 
         .[ , 2] %>% str_split("-", simplify = TRUE) %>% 
         .[ ,2] %>% as.integer()
 # replace NA in `end`
-code_tbl$`end` <- with(code_tbl, if_else(is.na(`end`), `start`, `end`))
+code_tbl_89$`end` <- with(code_tbl_89, if_else(is.na(`end`), `start`, `end`))
 
 ##### names of item_xxx ######
 doc.text.parts <- readtext(path_code)$`text` %>% 
         strsplit("\n") %>% .[[1]]
 # items: [71:819]
-doc.items <- grep("¡G", doc.text.parts, value = TRUE) %>% 
+doc.items <- grep("?G", doc.text.parts, value = TRUE) %>% 
         .[71:819]
 # item numbers
-doc.items.part1 <- strsplit(doc.items, "¡G") %>% 
+doc.items.part1 <- strsplit(doc.items, "?G") %>% 
         unlist() %>% 
         .[2 * (1:length(doc.text.parts)) -1 ] %>% 
         .[!is.na(.)]
 # item contents
-doc.items.part2 <- strsplit(doc.items, "¡G") %>% 
+doc.items.part2 <- strsplit(doc.items, "?G") %>% 
         unlist() %>% 
         .[2 * (1:length(doc.text.parts))] %>% 
         .[!is.na(.)]
@@ -88,10 +91,10 @@ y <- tempfile("tp", fileext = ".dat")
 # write the tempfile
 write(x, file = y)
 # read card 1
-# code_tbl[2:25]
-df1 <- read_fwf(y, fwf_positions(code_tbl$`start`[2:25], 
-                                 code_tbl$`end`[2:25],
-                                 col_names = code_tbl$`variable`[2:25]), 
+# code_tbl_89[2:25]
+df1 <- read_fwf(y, fwf_positions(code_tbl_89$`start`[2:25], 
+                                 code_tbl_89$`end`[2:25],
+                                 col_names = code_tbl_89$`variable`[2:25]), 
                 # define column types (variable classes) in df1
                 col_types = cols(x1 = "c", area = "f", stage = "f", 
                                  id = "c", a1 = "f", a2 = "f", 
@@ -122,15 +125,15 @@ f2 <- function(c, d = c - 1) {
                 y <- tempfile("tmp", fileext = ".dat")
                 write(x, file = y)
                 # read file [2, 26:54]
-                tmp <- read_fwf(y, fwf_positions(code_tbl$`start`[c(2, 26:54)], 
-                                                 code_tbl$`end`[c(2, 26:54)])
+                tmp <- read_fwf(y, fwf_positions(code_tbl_89$`start`[c(2, 26:54)], 
+                                                 code_tbl_89$`end`[c(2, 26:54)])
                                 )
                 } else {tmp <- matrix(ncol = 30) %>% as_tibble(.name_repair = NULL)
                         tmp[ , 1] <- "00000001"        
                         }
         # name the columns (b1_1, b1_2, b1_3 ......)
         # eg. b1_# , card_num == 2, then # == 1, get b1_1 (#: 1:19)
-        colnames(tmp) <- c("x1", paste(code_tbl$`variable`[26:54], d, sep = ""))
+        colnames(tmp) <- c("x1", paste(code_tbl_89$`variable`[26:54], d, sep = ""))
         # tmp$card_num <- as.integer(tmp$`card_num`)
         return(tmp)
         }
@@ -176,11 +179,11 @@ gc()
 x <- filter(df.source, card_num == 21) %>% .[ ,1] %>% .$raw
 y <- tempfile("tmp", fileext = ".dat")
 write(x, file = y)
-# code_tbl[55:85]
-df21 <- read_fwf(y, fwf_positions(code_tbl$`start`[c(2, 55:85)], 
-                                  code_tbl$`end`[c(2, 55:85)],
+# code_tbl_89[55:85]
+df21 <- read_fwf(y, fwf_positions(code_tbl_89$`start`[c(2, 55:85)], 
+                                  code_tbl_89$`end`[c(2, 55:85)],
                                   # variable names
-                                  col_names = code_tbl$`variable`[c(2, 55:85)]), 
+                                  col_names = code_tbl_89$`variable`[c(2, 55:85)]), 
                  # define column types
                  cols(x1 = "c", f57 = "f", f58 = "f", .default = "n")
                  ) %>% 
@@ -195,11 +198,11 @@ gc()
 x <- filter(df.source, card_num == 22) %>% .[ ,1] %>% .$raw
 y <- tempfile("tmp", fileext = ".dat")
 write(x, file = y)
-# code_tbl[86:112]
-df22 <- read_fwf(y, fwf_positions(code_tbl$`start`[c(2, 86:112)], 
-                                  code_tbl$`end`[c(2, 86:112)],
+# code_tbl_89[86:112]
+df22 <- read_fwf(y, fwf_positions(code_tbl_89$`start`[c(2, 86:112)], 
+                                  code_tbl_89$`end`[c(2, 86:112)],
                                   # variable names
-                                  col_names = code_tbl$`variable`[c(2, 86:112)]), 
+                                  col_names = code_tbl_89$`variable`[c(2, 86:112)]), 
                  # define column types
                  col_types = cols(x1 = "c", c15 = "n", c16 = "n",
                                   c17 = "n", c18 = "n", c19 = "n",
@@ -290,18 +293,18 @@ rm(df.source, x, df.itm.all, df1, df2, df21, df22, df23, data.list)
 gc()
 
 ##### factor label and values ######
-s <- which(!(code_tbl$level == ""))
+s <- which(!(code_tbl_89$level == ""))
 lev <- list() #[1-7], a_xx; [8-22], b_xx; [23-24], f; [25-27], c; [28-30], d
 lab <- list() #[1-7], a_xx; [8-22], b_xx; [23-24], f; [25-27], c; [28-30], d
 for(i in 1:length(s)){
-        lev[[i]] <- code_tbl$level[s[i]] %>% str_extract_all("[0-9]+") %>% .[[1]]
-        lab[[i]] <- code_tbl$level[s[i]] %>% str_split("[0-9]+\\. ") %>% .[[1]] %>% .[-1]
+        lev[[i]] <- code_tbl_89$level[s[i]] %>% str_extract_all("[0-9]+") %>% .[[1]]
+        lab[[i]] <- code_tbl_89$level[s[i]] %>% str_split("[0-9]+\\. ") %>% .[[1]] %>% .[-1]
         }
 
 ##### save ###### 
 # .RData
 save(df.inc89, file = "AA170025/inc89.RData")
-save(code_tbl, file = "AA170025/code_tbl_89.RData")
+save(code_tbl_89, file = "AA170025/code_tbl_89.RData")
 # .csv format
 # write_csv(df.inc106, "inc106.csv", col_names = TRUE, na = "")
 # .sas7bdat format
