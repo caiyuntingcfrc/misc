@@ -164,6 +164,12 @@ f2 <- function(c, d = c - 1) {
                 tmp[[l]][a] <- gsub(pattern = p[i],
                                     replacement = r[i],
                                     x = grep(p[i], tmp[[l]], value = TRUE))
+                # negative
+                b <- grep(p[i + 10], tmp[[l]])
+                tmp[[l]][b] <- gsub(pattern = p[i + 10], 
+                                    replacement = r[i + 10],
+                                    x = grep(p[i + 10], tmp[[l]], value = TRUE)) %>% 
+                        paste("-", ., sep = "")
                 }
         return(tmp)
         }
