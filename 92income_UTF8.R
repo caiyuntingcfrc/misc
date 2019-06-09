@@ -1,5 +1,5 @@
 ##### author: CAI YUN-TING ######
-##### The Survey of Family Income and Expenditure, 2001 #####
+##### The Survey of Family Income and Expenditure, 2003 #####
 
 ##### prep and options #####
 # rm
@@ -30,9 +30,9 @@ timestamp <- format(Sys.time(), "%m%d-%H%M")
 ptm <- proc.time()
 
 # data source
-path_code <- "AA170026/code90.docx"
-path_dat <- "AA170026/inc90.dat"
-year <- 90
+path_code <- "AA170028/code92.docx"
+path_dat <- "AA170028/inc92.dat"
+year <- 92
 
 ##### create the codebook ######
 # codebook
@@ -186,12 +186,11 @@ df2 <- df2 %>% convert(chr(x1),
                        num(contains("b23_")), 
                        num(contains("b25_")), 
                        num(contains("b27_")), 
-                       num(contains("b28_")),  
-                       chr(contains("b29_")) 
+                       num(contains("b28_"))  
                        )
 # b2_, b3_ ... (factor)
 variables <- colnames(df2)
-l <- grep("x1|b4|b17|b18|b21|b23|b25|b27|b28|b29", variables)
+l <- grep("x1|b4|b17|b18|b21|b23|b25|b27|b28", variables)
 # mutate_if
 df2[ , variables[-l]] %<>% mutate_if(is.character, as.factor) %>% 
         mutate_if(is.numeric, as.factor)
@@ -307,10 +306,10 @@ gc()
 data.list <- list(df1, df2, df21, df22, df23)
 df.inc <- Reduce(function(...) left_join(..., by = "x1"), data.list)
 # add year column
-df.inc$year <- as.integer(year)
+df.inc$year <- year
 #
-df.inc90 <- df.inc
-code_tbl_90 <- code_tbl
+df.inc92 <- df.inc
+code_tbl_92 <- code_tbl
 # remove
 rm(df.source, x, df.itm.all, 
    df1, df2, df21, df22, df23, 
@@ -321,11 +320,11 @@ gc()
 ##### save ###### 
 # .RData
 # save df.inc
-save(df.inc90, file = "AA170026/df_inc90.RData")
-save(df.inc90, file = "R data files/df_inc90.RData")
+save(df.inc92, file = "AA170028/df_inc92.RData")
+save(df.inc92, file = "R data files/df_inc92.RData")
 # save code_tbl
-save(code_tbl_90, file = "AA170026/code_tbl_90.RData")
-save(code_tbl_90, file = "R data files/code_tbl_90.RData")
+save(code_tbl_92, file = "AA170028/code_tbl_92.RData")
+save(code_tbl_92, file = "R data files/code_tbl_92.RData")
 # .csv format
 # write_csv(df.inc106, "inc106.csv", col_names = TRUE, na = "")
 # .sas7bdat format

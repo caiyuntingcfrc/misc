@@ -65,6 +65,14 @@ code_tbl$end <- code_tbl$card_pos %>%
 # replace NA in end
 code_tbl$end <- with(code_tbl, if_else(is.na(end), start, end))
 
+##### list for grep (grepbook) #####
+sym <- c("{", grep("[A-R]", LETTERS, value = TRUE), "}")
+digi <- c(0:9, 1:9, 0)
+positive <- c(rep("+", 10), rep("-", 10))
+grepbook <- tibble(sym, digi, positive)
+# pattern for grep and gsub
+pattern <- grepbook$sym %>% .[2:19]
+grepbook$pattern <- c("\\{$", sapply(pattern, paste, "$", sep = ""), "\\}$")
 ##### names of item_xxx ######
 doc.text.parts <- readtext(path_code)$text %>% 
         strsplit("\n") %>% .[[1]]
@@ -137,13 +145,26 @@ f2 <- function(c, d = c - 1) {
                 l <- grep("^x1|^b", code_tbl$variable)
                 tmp <- read_fwf(y, fwf_positions(code_tbl$start[l], 
                                                  code_tbl$end[l]))
-                } else {tmp <- matrix(ncol = 30) %>% as_tibble(.name_repair = NULL)
+                } else {l <- grep("^x1|^b", code_tbl$variable)
+                        tmp <- matrix(ncol = length(l)) %>% 
+                                as_tibble(.name_repair = NULL)
                         tmp[ , 1] <- "00000001"        
                         }
         # name the columns (b1_1, b1_2, b1_3 ......)
         # eg. b1_# , card_num == 2, then # == 1, get b1_1 (#: 1:19)
         l <- grep("^x1|^b", code_tbl$variable)
         colnames(tmp) <- c("x1", paste(code_tbl$variable[l[-1]], d, sep = ""))
+        # replace syms with digits
+        for(i in 1:10) {
+                p <- grepbook$pattern
+                r <- grepbook$digi
+                # positive
+                l <- grep("^b27_", names(tmp), value = TRUE)
+                a <- grep(p[i], tmp[[l]])
+                tmp[[l]][a] <- gsub(pattern = p[i],
+                                    replacement = r[i],
+                                    x = grep(p[i], tmp[[l]], value = TRUE))
+                }
         return(tmp)
         }
 # for loop and left_join (dplyr) 
@@ -234,15 +255,6 @@ for(i in 0:4) {
         }
 # free up ram
 gc()
-
-##### list for grep (grepbook) #####
-sym <- c("{", grep("[A-R]", LETTERS, value = TRUE), "}")
-digi <- c(0:9, 1:9, 0)
-positive <- c(rep("+", 10), rep("-", 10))
-grepbook <- tibble(sym, digi, positive)
-# pattern for grep and gsub
-pattern <- grepbook$sym %>% .[2:19]
-grepbook$pattern <- c("\\{$", sapply(pattern, paste, "$", sep = ""), "\\}$")
 
 ##### replace symbols with digits #####
 p <- grepbook$pattern
