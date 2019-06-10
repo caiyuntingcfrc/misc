@@ -1,5 +1,5 @@
 ##### author: CAI YUN-TING ######
-##### The Survey of Family Income and Expenditure, 2000 #####
+##### The Survey of Family Income and Expenditure, 2005 #####
 
 ##### prep and options #####
 # set working directory
@@ -28,9 +28,9 @@ timestamp <- format(Sys.time(), "%m%d-%H%M")
 ptm <- proc.time()
 
 # data source
-path_code <- "AA170025/code89.docx"
-path_dat <- "AA170025/inc89.dat"
-year <- 89
+path_code <- "AA170030/code94.docx"
+path_dat <- "AA170030/inc94.dat"
+year <- 94
 
 ##### create the codebook ######
 # codebook
@@ -71,6 +71,7 @@ grepbook <- tibble(sym, digi, positive)
 # pattern for grep and gsub
 pattern <- grepbook$sym %>% .[2:19]
 grepbook$pattern <- c("\\{$", sapply(pattern, paste, "$", sep = ""), "\\}$")
+
 ##### names of item_xxx ######
 doc.text.parts <- readtext(path_code)$text %>% 
         strsplit("\n") %>% .[[1]]
@@ -113,13 +114,12 @@ df1 <- read_fwf(y, fwf_positions(code_tbl$start[l],
                                  col_names = code_tbl$variable[l]), 
                 # define column types (variable classes) in df1
                 col_types = cols(x1 = "c", area = "f", stage = "f", 
-                                 id = "c", a1 = "f", a2 = "f", 
-                                 a3 = "f", a4 = "f", 
+                                 id = "c", a1 = "f", a4 = "f", 
                                  a5 = "f", a6 = "n", a7 = "f", 
                                  a8 = "n", a9 = "n", a11 = "f", 
                                  a12 = "n", a13 = "n", a14 = "f", 
                                  a15 = "f", a16 = "f", a17 = "f", 
-                                 a18 = "f", a19 = "n", a20 = "n", a21 = "c")
+                                 a18 = "f", a19 = "n", a20 = "n")
                 ) %>% 
         # order
         .[order(.$x1), ]
@@ -145,7 +145,7 @@ f2 <- function(c, d = c - 1) {
                                                  code_tbl$end[l]))
                 } else {l <- grep("^x1|^b", code_tbl$variable)
                         tmp <- matrix(ncol = length(l)) %>% 
-                                as_tibble(.name_repair = NULL)
+                        as_tibble(.name_repair = NULL)
                         tmp[ , 1] <- "00000001"        
                         }
         # name the columns (b1_1, b1_2, b1_3 ......)
@@ -189,12 +189,11 @@ df2 <- df2 %>% convert(chr(x1),
                        num(contains("b23_")), 
                        num(contains("b25_")), 
                        num(contains("b27_")), 
-                       num(contains("b28_")),  
-                       chr(contains("b29_")) 
+                       num(contains("b28_"))  
                        )
 # b2_, b3_ ... (factor)
 variables <- colnames(df2)
-l <- grep("x1|b4|b17|b18|b21|b23|b25|b27|b28|b29", variables)
+l <- grep("x1|b4|b17|b18|b21|b23|b25|b27|b28", variables)
 # mutate_if
 df2[ , variables[-l]] %<>% mutate_if(is.character, as.factor) %>% 
         mutate_if(is.numeric, as.factor)
@@ -283,7 +282,6 @@ df23 <- df23 %>% spread(key = "item", value = "exp")
 df23 <- df23 %>% select( - one_of("000"))
 
 ##### items with no observations #####
-# df23 (626 variables) but all items are 800
 # names of all the items
 colnames(df23)[-1] <- colnames(df23)[-1] %>% 
         as.integer() %>% 
@@ -313,8 +311,8 @@ df.inc <- Reduce(function(...) left_join(..., by = "x1"), data.list)
 # add year column
 df.inc$year <- year
 #
-df.inc89 <- df.inc
-code_tbl_89 <- code_tbl
+df.inc94 <- df.inc
+code_tbl_94 <- code_tbl
 # remove
 rm(df.source, x, df.itm.all, 
    df1, df2, df21, df22, df23, 
@@ -325,11 +323,11 @@ gc()
 ##### save ###### 
 # .RData
 # save df.inc
-save(df.inc89, file = "AA170025/df_inc89.RData")
-save(df.inc89, file = "R data files/df_inc89.RData")
+save(df.inc94, file = "AA170030/df_inc94.RData")
+save(df.inc94, file = "R data files/df_inc94.RData")
 # save code_tbl
-save(code_tbl_89, file = "AA170025/code_tbl_89.RData")
-save(code_tbl_89, file = "R data files/code_tbl_89.RData")
+save(code_tbl_94, file = "AA170030/code_tbl_94.RData")
+save(code_tbl_94, file = "R data files/code_tbl_94.RData")
 # .csv format
 # write_csv(df.inc106, "inc106.csv", col_names = TRUE, na = "")
 # .sas7bdat format

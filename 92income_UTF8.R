@@ -2,8 +2,6 @@
 ##### The Survey of Family Income and Expenditure, 2003 #####
 
 ##### prep and options #####
-# rm
-rm(list = ls())
 # set working directory
 setwd("~/R_wd/tw_inc/")
 # loading packages
@@ -165,6 +163,12 @@ f2 <- function(c, d = c - 1) {
                 tmp[[l]][a] <- gsub(pattern = p[i],
                                     replacement = r[i],
                                     x = grep(p[i], tmp[[l]], value = TRUE))
+                # negative
+                b <- grep(p[i + 10], tmp[[l]])
+                tmp[[l]][b] <- gsub(pattern = p[i + 10], 
+                                    replacement = r[i + 10],
+                                    x = grep(p[i + 10], tmp[[l]], value = TRUE)) %>% 
+                        paste("-", ., sep = "")
                 }
         return(tmp)
         }
@@ -336,4 +340,5 @@ save(code_tbl_92, file = "R data files/code_tbl_92.RData")
 proc.time() - ptm
 
 ##### remove all objects ######
-# rm(list = ls())
+l <- grep("^df.inc|^code_tbl", ls())
+rm(list = ls()[-l])
