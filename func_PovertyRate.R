@@ -23,6 +23,13 @@ poverty_rate <- function(df, weight,
                          n.all = "a8", sex = "a7", aged = "a19", 
                          type = "a18", n.adult = "a12", year) {
         
+        ##### weight by age #####
+        n_all <- df[[n.all]] 
+        n_adult <- df[[n.adult]] 
+        # df <- df %>% 
+        #         mutate(n_weight = case_when(n_all - n_adult == 0 ~ 1 + (n_adult - 1) * 0.8, 
+        #                                     n_all - n_adult > 0 ~ 1 + (n_adult - 1) * 0.8 + (n_all - n_adult) * 0.6))
+        
         ##### equivalised income #####
         n <- df[[n.all]]
         df <- df %>% 
@@ -75,7 +82,7 @@ poverty_rate <- function(df, weight,
         names(p.without_aged) <- "Household without aged"
         
         ##### overall single-parent families #####
-        # children are under 18
+        # children are under 18: dependent children
         d <- df
         l <- grep("^b4_", names(d))
         w <- d[ , l] < 18
@@ -89,7 +96,7 @@ poverty_rate <- function(df, weight,
         names(p.single_parent) <- "Overall single-parent families"
         
         ##### male single-parent households #####
-        # children are under 18
+        # children are under 18: dependent children
         d <- df
         l <- grep("^b4_", names(d))
         w <- d[ , l] < 18

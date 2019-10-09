@@ -19,14 +19,18 @@ st_options(style = "simple",
 
 ##### load the RData file #####
 # code book
-load("AA170025/code_tbl_89.RData")
+load("AA170030/code_tbl_94.RData")
 # data file
-load("AA170025/inc89.RData")
+load("AA170030/inc94.RData")
+# source function "poverty_rate"
+source("~/Github_CFRC/misc/func_PovertyRate.R")
+
+poverty_rate(df = df.inc94, weight = "a20", year = 94)
 
 ##### function -- poverty rate #####
 poverty_rate <- function(df, weight, 
                          n.all = "a8", sex = "a7", aged = "a19", 
-                         type = "a18", n.adult = "a12") {
+                         n.adult = "a12", type = "a18") {
         
         ##### equivalised income #####
         n <- df[[n.all]]
@@ -76,8 +80,8 @@ poverty_rate <- function(df, weight,
         
         ##### overall single parent households #####
         # children are under 18
-        d <- df
-        l <- grep("^b4_", names(df))
+        d <- df.inc89
+        l <- grep("^b4_", names(d))
         w <- d[ , l] < 18
         d <- d[unique(which(w, arr.ind = TRUE)[ , 1]), ]
         # structure of families: single parent
@@ -175,21 +179,6 @@ p.threshold <- function(df, w, inc) {
         return(m)
         }
 
-##### (vanilla) function -- poverty threshold #####
-# p.threshold <- function(df, w, inc) {
-#         # weight
-#         a <- df[[w]]
-#         b <- df[[inc]]
-#         x <- vector("list", length = length(a))
-#         for(i in 1:length(a)) {
-#                 x[[i]] <- rep(b[i], times = a[i])
-#                 }
-#         x <- unlist(x)
-#         # calculate the median
-#         m <- median(x, na.rm = TRUE)
-#         return(m)
-# }
-
 ##### functioin -- proportion #####
 p.prop <- function(df, w, inc, m) {
         # weight
@@ -197,6 +186,7 @@ p.prop <- function(df, w, inc, m) {
         b <- df[[inc]]
         # replicate income by weight
         x <- b[rep(1:length(b), times = a)]
+        y <- x < (m * 0.5)
         p <- length(y[y == TRUE]) / length(y) * 100
         return(p)
         }
