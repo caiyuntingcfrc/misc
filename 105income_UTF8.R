@@ -1,6 +1,6 @@
 
 # author: CAI YUN-TING ----------------------------------------------------
-# The Survey of Family Income and Expenditure, 2014 -----------------------
+# The Survey of Family Income and Expenditure, 2016 -----------------------
 
 # prep and options --------------------------------------------------------
 # set working directory
@@ -27,9 +27,9 @@ timestamp <- format(Sys.time(), "%m%d-%H%M")
 # processing time
 ptm <- proc.time()
 # data source
-path_code <- "AA170039/code103.docx"
-path_dat <- "AA170039/inc103_rev.dat"
-year <- 103
+path_code <- "AA170041/code105.docx"
+path_dat <- "AA170041/inc105.dat"
+year <- 105
 
 # create the codebook -----------------------------------------------------
 
@@ -80,8 +80,8 @@ doc.text.parts <- readtext(path_code)$text %>%
 # items
 doc.items <- doc.text.parts %>% 
         # begin with at least two digits
-        grep("^[1-9][0-9]{1,3}：", ., value = TRUE) %>% 
-        strsplit(., "：") %>% 
+        grep("^[1-9][0-9]{1,3}:", ., value = TRUE) %>% 
+        strsplit(., ":") %>% 
         unlist() 
         
 # item numbers
@@ -298,8 +298,8 @@ df.inc <- Reduce(function(...) left_join(..., by = "x1"), data.list)
 # add year column
 df.inc$year <- year
 #
-df.inc103 <- df.inc
-code_tbl_103 <- code_tbl
+df.inc105 <- df.inc
+code_tbl_105 <- code_tbl
 # remove
 rm(df.source, x, df.itm.all, 
    df1, df2, df21, df22, df23, 
@@ -307,15 +307,20 @@ rm(df.source, x, df.itm.all,
 # free up memory
 gc()
 
+# verify with dta file ----------------------------------------------------
 
+df <- read_dta("AA170041/inc105.dta")
+length(which(!(names(df.inc105) %in% names(df))))
+which(!(names(df.inc105) %in% names(df)))
+length(which(!(names(df) %in% names(df.inc105))))
 # save --------------------------------------------------------------------
 # .RData
 # save df.inc
-save(df.inc103, file = "AA170039/df_inc103.RData")
-save(df.inc103, file = "R data files/df_inc103.RData")
+save(df.inc105, file = "AA170041/df_inc105.RData")
+save(df.inc105, file = "R data files/df_inc105.RData")
 # save code_tbl
-save(code_tbl_103, file = "AA170039/code_tbl_103.RData")
-save(code_tbl_103, file = "R data files/code_tbl_103.RData")
+save(code_tbl_105, file = "AA170041/code_tbl_105.RData")
+save(code_tbl_105, file = "R data files/code_tbl_105.RData")
 # .csv format
 # write_csv(df.inc106, "inc106.csv", col_names = TRUE, na = "")
 # .sas7bdat format
