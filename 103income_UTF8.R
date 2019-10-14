@@ -1,6 +1,6 @@
 
 # author: CAI YUN-TING ----------------------------------------------------
-# The Survey of Family Income and Expenditure, 2012 -----------------------
+# The Survey of Family Income and Expenditure, 2014 -----------------------
 
 # prep and options --------------------------------------------------------
 # set working directory
@@ -27,9 +27,9 @@ timestamp <- format(Sys.time(), "%m%d-%H%M")
 # processing time
 ptm <- proc.time()
 # data source
-path_code <- "AA170037/code101.docx"
-path_dat <- "AA170037/inc101.dat"
-year <- 101
+path_code <- "AA170039/code103.docx"
+path_dat <- "AA170039/inc103.dat"
+year <- 103
 
 # create the codebook -----------------------------------------------------
 
@@ -117,7 +117,7 @@ df1 <- read_fwf(y, fwf_positions(code_tbl$start[l],
                                  code_tbl$end[l],
                                  col_names = code_tbl$variable[l]), 
                 # define column types (variable classes) in df1
-                col_types = cols(x1 = "c", 
+                col_types = cols(x1 = "c",  
                                  id = "c", a4 = "f", 
                                  a5 = "f", a6 = "n", a7 = "f", 
                                  a8 = "n", a9 = "n", a11 = "f", 
@@ -134,7 +134,7 @@ gc()
 # function f2
 f2 <- function(c, d = c - 1) {
         # if input c (card_num) is not in the raw data, 
-        # then create a temp file wiith "000000001" (for merging data), 
+        # then create a temp file with "000000001" (for merging data), 
         # which will fill NA.
         # matrix with 29 columns c(2, 26:54)
         if(c %in% df.source$card_num) {
@@ -216,9 +216,9 @@ df22 <- read_fwf(y, fwf_positions(code_tbl$start[l],
                                   col_names = code_tbl$variable[l]), 
                  # define column types
                  col_types = cols(x1 = "c", 
-                                  c15 = "n", c16 = "n", c17 = "n",
-                                  c18 = "n", c19 = "n", c22 = "n", 
-                                  .default = "f")) %>% 
+                                  c1 = "f", c2 = "f", c4 = "f", 
+                                  d1 = "f", d5 = "f", d6 = "f", 
+                                  .default = "n")) %>% 
         # order by x1
         .[order(.$x1), ]
 
@@ -298,8 +298,8 @@ df.inc <- Reduce(function(...) left_join(..., by = "x1"), data.list)
 # add year column
 df.inc$year <- year
 #
-df.inc100 <- df.inc
-code_tbl_100 <- code_tbl
+df.inc103 <- df.inc
+code_tbl_103 <- code_tbl
 # remove
 rm(df.source, x, df.itm.all, 
    df1, df2, df21, df22, df23, 
@@ -311,11 +311,11 @@ gc()
 # save --------------------------------------------------------------------
 # .RData
 # save df.inc
-save(df.inc100, file = "AA170036/inc100.RData")
-save(df.inc100, file = "R data files/inc100.RData")
+save(df.inc103, file = "AA170039/df_inc103.RData")
+save(df.inc103, file = "R data files/df_inc103.RData")
 # save code_tbl
-save(code_tbl_100, file = "AA170036/code_tbl_100.RData")
-save(code_tbl_100, file = "R data files/code_tbl_100.RData")
+save(code_tbl_103, file = "AA170039/code_tbl_103.RData")
+save(code_tbl_103, file = "R data files/code_tbl_103.RData")
 # .csv format
 # write_csv(df.inc106, "inc106.csv", col_names = TRUE, na = "")
 # .sas7bdat format

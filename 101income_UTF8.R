@@ -266,7 +266,7 @@ for(i in 1:10) {
 # spread (transpose)
 df23 <- df23 %>% spread(key = "item", value = "exp")
 # remove column `0000`
-df23 <- df23 %>% select( - one_of("0000"))
+df23 <- df23 %>% select( - one_of("0000")) %>% select( - one_of("1271"))
 
 # items without observations ----------------------------------------------
 # names of all the items
@@ -298,8 +298,8 @@ df.inc <- Reduce(function(...) left_join(..., by = "x1"), data.list)
 # add year column
 df.inc$year <- year
 #
-df.inc100 <- df.inc
-code_tbl_100 <- code_tbl
+df.inc101 <- df.inc
+code_tbl_101 <- code_tbl
 # remove
 rm(df.source, x, df.itm.all, 
    df1, df2, df21, df22, df23, 
@@ -311,11 +311,11 @@ gc()
 # save --------------------------------------------------------------------
 # .RData
 # save df.inc
-save(df.inc100, file = "AA170036/inc100.RData")
-save(df.inc100, file = "R data files/inc100.RData")
+save(df.inc101, file = "AA170037/inc101.RData")
+save(df.inc101, file = "R data files/inc101.RData")
 # save code_tbl
-save(code_tbl_100, file = "AA170036/code_tbl_100.RData")
-save(code_tbl_100, file = "R data files/code_tbl_100.RData")
+save(code_tbl_101, file = "AA170037/code_tbl_101.RData")
+save(code_tbl_101, file = "R data files/code_tbl_101.RData")
 # .csv format
 # write_csv(df.inc106, "inc106.csv", col_names = TRUE, na = "")
 # .sas7bdat format
