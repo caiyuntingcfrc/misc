@@ -39,7 +39,7 @@ poverty_rate <- function(df, weight,
         w2 <- n[rep(1:length(n), times = w)]
         weighed <- w1[rep(1:length(w1), times = w2)]
         # calculate the median and poverty threshold
-        t <- median(weighed, na.rm = TRUE) * 0.5
+        t <- median(w1, na.rm = TRUE) * 0.5
         
         ##### function prop #####
         p.prop <- function(df, w) {
@@ -126,10 +126,14 @@ poverty_rate <- function(df, weight,
         
         ##### Overall population #####
         # below threshold
-        r <- weighed < t
+        t2 <- median(weighed, na.rm = TRUE) * 0.5
+        low <- weighed < t
+        low2 <- weighed < t2
         # calculate the proportion
-        p.all_population <- length(r[r == TRUE]) / length(r) * 100
+        p.all_population <- length(low[low == TRUE]) / length(low) * 100
+        p.all_population_DGBAS <- length(low2[low2 == TRUE]) / length(low2) * 100
         names(p.all_population) <- "Overall population"
+        names(p.all_population_DGBAS) <- "Overall population (DGBAS)"
         
         ##### Elderly population #####
         d <- df
@@ -145,15 +149,19 @@ poverty_rate <- function(df, weight,
         weighed <- w1[rep(1:length(w1), times = w2)]
         # below threshold
         low <- weighed < t
+        low2 <- weighed < t2
         # calculate the proportion
         p.all_elderly <- length(low[low == TRUE]) / length(low) * 100
+        p.all_elderly_DGBAS <- length(low2[low2 == TRUE]) / length(low2) * 100
         names(p.all_elderly) <- "Elderly population"
+        names(p.all_elderly_DGBAS) <- "Elderly population (DGBAS)"
         
         ##### return the results #####
         l <- c(p.all_house, p.m_headed_house, p.f_headed_house, 
                p.with_aged, p.without_aged, p.single_parent, 
-               p.m_single_parent, p.f_single_parent, p.all_population, 
-               p.all_elderly)
+               p.m_single_parent, p.f_single_parent, 
+               p.all_population, p.all_population_DGBAS, 
+               p.all_elderly, p.all_elderly_DGBAS)
         out.table <- data.frame(l, row.names = names(l))
         colnames(out.table) <- year
         return(out.table)
