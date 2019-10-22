@@ -57,6 +57,6 @@ data.list <- do.call("list", mget(l))
 p_all <- do.call(cbind, data.list) %>% 
         select(sort(names(.), decreasing = FALSE))
 poverty.rate.tw <- p_all
-save(poverty.rate.tw, file = "R data files/poverty.rate.tw.RData")
+save(poverty.rate.tw, file = "R data files/poverty.rate.tw_DGBAS.RData")
 
 

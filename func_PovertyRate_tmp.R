@@ -40,6 +40,8 @@ poverty_rate <- function(df, weight,
         weighed <- w1[rep(1:length(w1), times = w2)]
         # calculate the median and poverty threshold
         t <- median(w1, na.rm = TRUE) * 0.5
+        # DGBAS
+        t2 <- median(weighed, na.rm = TRUE) * 0.5
         
         ##### function prop #####
         p.prop <- function(df, w) {
@@ -48,35 +50,49 @@ poverty_rate <- function(df, weight,
                 i <- df[["indi_inc"]]
                 # replicate income by weight
                 weighed <- i[rep(1:length(i), times = w)]
-                low <- weighed < t
-                p <- length(low[low == TRUE]) / length(low) * 100
+                low1 <- weighed < t
+                low2 <- weighed < t2
+                p1 <- length(low1[low1 == TRUE]) / length(low1) * 100
+                # DGBAS
+                p2 <- length(low2[low2 == TRUE]) / length(low2) * 100
+                p <- c(p1, p2)
                 return(p)
         }
         
         ##### prop overall households #####
         d <- df
-        p.all_house <- p.prop(df = d, w = weight)
+        p.all_house <- p.prop(df = d, w = weight)[1]
+        p.all_house_DGBAS <- p.prop(df = d, w = weight)[2]
         names(p.all_house) <- "Overall household"
+        names(p.all_house_DGBAS) <- "Overall household (DGBAS)"
         
         ##### prop male headed household #####
         d <- df[df[[sex]] == 1, ]
-        p.m_headed_house <- p.prop(df = d, w = weight)
+        p.m_headed_house <- p.prop(df = d, w = weight)[1]
+        p.m_headed_house_DGBAS <- p.prop(df = d, w = weight)[2]
         names(p.m_headed_house) <- "Male headed households"
+        names(p.m_headed_house_DGBAS) <- "Male headed households (DGBAS)"
         
         ##### prop female headed household #####
         d <- df[df[[sex]] == 2, ]
-        p.f_headed_house <- p.prop(df = d, w = weight)
+        p.f_headed_house <- p.prop(df = d, w = weight)[1]
+        p.f_headed_house_DGBAS <- p.prop(df = d, w = weight)[2]
         names(p.f_headed_house) <- "Female headed households"
+        names(p.f_headed_house_DGBAS) <- "Female headed households (DGBAS)"
         
         ##### prop household with aged #####
         d <- df[df[[aged]] >= 1, ]
-        p.with_aged <- p.prop(df = d, w = weight)
+        p.with_aged <- p.prop(df = d, w = weight)[1]
+        p.with_aged_DGBAS <- p.prop(df = d, w = weight)[2]
         names(p.with_aged) <- "Household with aged"
+        names(p.with_aged_DGBAS) <- "Household with aged (DGBAS)"
         
         ##### prop household without aged #####
         d <- df[df[[aged]] < 1, ]
-        p.without_aged <- p.prop(df = d, w = weight)
+        p.without_aged <- p.prop(df = d, w = weight)[1]
+        p.without_aged_DGBAS <- p.prop(df = d, w = weight)[2]
         names(p.without_aged) <- "Household without aged"
+        names(p.without_aged_DGBAS) <- "Household without aged (DGBAS)"
         
         ##### overall single-parent families #####
         # children are under 18: dependent children
@@ -89,8 +105,10 @@ poverty_rate <- function(df, weight,
                 .[.[[type]] %in% c(321, 322, 331, 332), ] %>% 
                 # with children
                 .[.[[n.all]] - .[[n.adult]] > 0, ]
-        p.single_parent <- p.prop(df = d, w = weight)
+        p.single_parent <- p.prop(df = d, w = weight)[1]
+        p.single_parent_DGBAS <- p.prop(df = d, w = weight)[2]
         names(p.single_parent) <- "Overall single-parent families"
+        names(p.single_parent_DGBAS) <- "Overall single-parent families (DGBAS)"
         
         ##### male single-parent households #####
         # children are under 18: dependent children
@@ -105,8 +123,10 @@ poverty_rate <- function(df, weight,
                 .[.[[type]] %in% c(321, 322, 331, 332), ] %>% 
                 # with children
                 .[.[[n.all]] - .[[n.adult]] > 0, ]
-        p.m_single_parent <- p.prop(df = d, w = weight)
+        p.m_single_parent <- p.prop(df = d, w = weight)[1]
+        p.m_single_parent_DGBAS <- p.prop(df = d, w = weight)[2]
         names(p.m_single_parent) <- "Male single-parent families"
+        names(p.m_single_parent_DGBAS) <- "Male single-parent families (DGBAS)"
         
         ##### female single-parent families #####
         # children are under 18
@@ -121,18 +141,20 @@ poverty_rate <- function(df, weight,
                 .[.[[type]] %in% c(321, 322, 331, 332), ] %>% 
                 # with children
                 .[.[[n.all]] - .[[n.adult]] > 0, ]
-        p.f_single_parent <- p.prop(df = d, w = weight)
+        p.f_single_parent <- p.prop(df = d, w = weight)[1]
+        p.f_single_parent_DGBAS <- p.prop(df = d, w = weight)[2]
         names(p.f_single_parent) <- "Female single-parent families"
+        names(p.f_single_parent_DGBAS) <- "Female single-parent families (DGBAS)"
         
         ##### Overall population #####
         # below threshold
-        t2 <- median(weighed, na.rm = TRUE) * 0.5
         low <- weighed < t
         low2 <- weighed < t2
         # calculate the proportion
         p.all_population <- length(low[low == TRUE]) / length(low) * 100
         p.all_population_DGBAS <- length(low2[low2 == TRUE]) / length(low2) * 100
         names(p.all_population) <- "Overall population"
+        # DGBAS
         names(p.all_population_DGBAS) <- "Overall population (DGBAS)"
         
         ##### Elderly population #####
@@ -157,9 +179,14 @@ poverty_rate <- function(df, weight,
         names(p.all_elderly_DGBAS) <- "Elderly population (DGBAS)"
         
         ##### return the results #####
-        l <- c(p.all_house, p.m_headed_house, p.f_headed_house, 
-               p.with_aged, p.without_aged, p.single_parent, 
-               p.m_single_parent, p.f_single_parent, 
+        l <- c(p.all_house, p.all_house_DGBAS,
+               p.m_headed_house, p.m_headed_house_DGBAS,
+               p.f_headed_house, p.f_headed_house_DGBAS,
+               p.with_aged, p.with_aged_DGBAS, 
+               p.without_aged, p.without_aged_DGBAS, 
+               p.single_parent, p.single_parent_DGBAS, 
+               p.m_single_parent, p.m_single_parent_DGBAS, 
+               p.f_single_parent, p.f_single_parent_DGBAS, 
                p.all_population, p.all_population_DGBAS, 
                p.all_elderly, p.all_elderly_DGBAS)
         out.table <- data.frame(l, row.names = names(l))
