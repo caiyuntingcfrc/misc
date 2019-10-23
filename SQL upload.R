@@ -1,4 +1,6 @@
-# prep and options
+
+# prep and options --------------------------------------------------------
+
 # list of packages
 list.packages <- c("tidyverse", "magrittr", "haven", "DBI")
 # check if the packages are installed
@@ -9,6 +11,8 @@ if(length(new.packages)) install.packages(new.packages)
 lapply(list.packages, require, character.only = TRUE)
 # remove lists
 rm(list.packages, new.packages)
+
+# load data file ----------------------------------------------------------
 
 load("tw_inc/R data files/df_inc104.RData")
 # MySQL Upload test -------------------------------------------------------
