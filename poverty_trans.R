@@ -23,3 +23,5 @@ df <- df[l, ] %>%
         t() %>% 
         as_tibble()
 df$year <- 2000:2018
+poverty.rate.tw_DGBAS <- df
+save(poverty.rate.tw_DGBAS, file = "povertyRatesTW.RData")
