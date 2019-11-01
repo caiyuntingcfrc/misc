@@ -19,24 +19,26 @@ lapply(list.packages, require, character.only = TRUE)
 rm(list.packages, new.packages)
 
 # load file
-load("tw_inc/R data files/povertyRatesTW.RData")
+# load("tw_inc/R data files/povertyRatesTW.RData")
 load("tw_inc/R data files/poverty.rate.tw_DGBAS.RData")
 
 l <- grep("DGBAS", rownames(poverty.rate.tw))
 df0 <- poverty.rate.tw[-l, ] %>% 
-        t()
+        t() %>% 
+        as_tibble()
 df <- poverty.rate.tw[l, ] %>% 
         t() %>% 
         as_tibble()
 colnames(df) <- colnames(df0)
-df <- df %>% 
+df <- df0 %>% 
         mutate(year = 2000:2018)
-
+# save(df, file = "tw_inc/R data files/poverty.rate.tw.RData")
+# save(df, file = "tw_inc/R data files/poverty.rate.tw.DGBAS.RData")
 # plots -------------------------------------------------------------------
 df <- gather(df, 
             key = "type of poverty rate", 
             value = "poverty rates", -year)
-save(df, file = "demo_povertyRates/poverty.demo.RData")
+save(df, file = "shiny/demo_dashboard/poverty.demo.RData")
 df <- df %>% convert(int(year))
 d <- df %>% 
         filter(year %in% 2000:2008) 

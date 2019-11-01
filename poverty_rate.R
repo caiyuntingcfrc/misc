@@ -2,7 +2,7 @@
 ##### poverty rate 2000 #####
 ##### prep and options #####
 # set working directory
-setwd("D:/R_wd/")
+setwd("~/R_wd/")
 # clear objects
 rm(list = ls())
 # load the packages
@@ -19,11 +19,11 @@ st_options(style = "simple",
 
 ##### load the RData file #####
 # code book
-load("tw_inc/R data files/code_tbl_107.RData")
+load("tw_inc/R data files/code_tbl_89.RData")
 # data file
-load("tw_inc/R data files/df_inc107.RData")
+load("tw_inc/R data files/df_inc89.RData")
 
-df <- df.inc107
+df <- df.inc89
 
 ##### Equivalised income #####
 df <- df %>% 
@@ -126,25 +126,40 @@ p.prop <- function(df, w, inc, m) {
 #         }
 
 ##### median #####
-m <- p.threshold(df.inc89, "a21", "indi_inc")
+d <- df
+m <- p.threshold(d, "a21", "indi_inc")
 
 ##### overall households #####
-p_all <- p.prop(df.inc89, "a21", "indi_inc", m)
+d <- df
+p_all <- p.prop(d, "a21", "indi_inc", m)
 
 ##### male headed households #####
 # filter by head's sex
-df <- df.inc89 %>% filter(a7 == 1)
-p_m_head <- p.prop(df, "a21", "indi_inc", m)
+d <- df %>% filter(a7 == 1)
+p_m_head <- p.prop(d, "a21", "indi_inc", m)
 
 ##### female headed households #####
 # filter by head's sex
-df <- df.inc89 %>% filter(a7 == 2)
-p_f_head <- p.prop(df, "a21", "indi_inc", m)
+d <- df %>% filter(a7 == 2)
+p_f_head <- p.prop(d, "a21", "indi_inc", m)
 
 ##### house with aged #####
 # filter by number of aged
-df <- df.inc89 %>% filter(a19 >= 1)
-p_with_aged <- p.prop(df, "a21", "indi_inc", m)
+d <- df %>% filter(a19 >= 1)
+d <- df %>% filter_at(vars(matches("^b4_")), 
+                      any_vars(. >= 65))
+p_with_aged <- p.prop(d, "a21", "indi_inc", m)
+
+##### house with aged who are above 75
+d <- df %>% filter_at(vars(matches("^b4_")), 
+                      any_vars(. >= 75))
+p_with_aged75 <- p.prop(d, "a21", "indi_inc", m)
+
+##### house with aged who are above 85
+d <- df %>% filter_at(., 
+                      vars(matches("^b4_")), 
+                      any_vars(. >= 85))
+p_with_aged85 <- p.prop(d, "a21", "indi_inc", m)
 
 ##### house without aged #####
 # filter by number of aged
