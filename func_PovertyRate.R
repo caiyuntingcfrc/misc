@@ -26,9 +26,6 @@ poverty_rate <- function(df, weight,
         ##### weight by age #####
         n_all <- df[[n.all]] 
         n_adult <- df[[n.adult]] 
-        # df <- df %>% 
-        #         mutate(n_weight = case_when(n_all - n_adult == 0 ~ 1 + (n_adult - 1) * 0.8, 
-        #                                     n_all - n_adult > 0 ~ 1 + (n_adult - 1) * 0.8 + (n_all - n_adult) * 0.6))
         
         ##### equivalised income #####
         n <- df[[n.all]]
@@ -37,24 +34,24 @@ poverty_rate <- function(df, weight,
                        indi_inc = (itm400 - itm600) / sqrt_scale)
         
         ##### poverty threshold #####
-        a <- df[[weight]]
-        b <- df[["indi_inc"]]
+        w <- df[[weight]]
+        i <- df[["indi_inc"]]
         # replicate income by weight
-        x <- b[rep(1:length(b), times = a)]
+        weighed <- i[rep(1:length(i), times = w)]
         # calculate the median and poverty threshold
-        t <- median(x, na.rm = TRUE) * 0.5
+        t <- median(weighed, na.rm = TRUE) * 0.5
         
         ##### function prop #####
         p.prop <- function(df, w) {
                 # weight
-                a <- df[[w]]
-                b <- df[["indi_inc"]]
+                w <- df[[w]]
+                i <- df[["indi_inc"]]
                 # replicate income by weight
-                x <- b[rep(1:length(b), times = a)]
-                y <- x < t
-                p <- length(y[y == TRUE]) / length(y) * 100
+                weighed <- i[rep(1:length(i), times = w)]
+                r <- weighed < t
+                p <- length(r[r == TRUE]) / length(r) * 100
                 return(p)
-        }
+                }
         
         ##### prop overall households #####
         d <- df
@@ -62,52 +59,71 @@ poverty_rate <- function(df, weight,
         names(p.all_house) <- "Overall household"
         
         ##### prop male headed household #####
-        d <- df[df[[sex]] == 1, ]
+        # d <- df[df[[sex]] == 1, ]
+        d <- df %>% filter_at(sex, all_vars(. == 1))
         p.m_headed_house <- p.prop(df = d, w = weight)
         names(p.m_headed_house) <- "Male headed households"
         
         ##### prop female headed household #####
-        d <- df[df[[sex]] == 2, ]
+        # d <- df[df[[sex]] == 2, ]
+        d <- df %>% filter_at(sex, all_vars(. == 2))
         p.f_headed_house <- p.prop(df = d, w = weight)
         names(p.f_headed_house) <- "Female headed households"
         
         ##### prop household with aged #####
-        d <- df[df[[aged]] >= 1, ]
+        # d <- df[df[[aged]] >= 1, ]
+        d <- df %>% filter_at(aged, all_vars(. >= 1))
         p.with_aged <- p.prop(df = d, w = weight)
         names(p.with_aged) <- "Household with aged"
         
         ##### prop household without aged #####
-        d <- df[df[[aged]] < 1, ]
+        # d <- df[df[[aged]] < 1, ]
+        d <- df %>% filter_at(aged, all_vars(. >= 1))
         p.without_aged <- p.prop(df = d, w = weight)
         names(p.without_aged) <- "Household without aged"
         
         ##### overall single-parent families #####
         # children are under 18: dependent children
-        d <- df
-        l <- grep("^b4_", names(d))
-        w <- d[ , l] < 18
-        d <- d %>% 
-                .[unique(which(w, arr.ind = TRUE)[ , 1]), ] %>% 
-                # structure of families: single parent
-                .[.[[type]] %in% c(321, 322, 331, 332), ] %>% 
-                # with children
+        d <- df %>% 
+                # having members who are under 18
+                filter_at(vars(matches("^b4_")), any_vars(. < 18)) %>% 
+                # structure of family: single parent family
+                filter_at(type, all_vars(. %in% c(321, 322, 331, 332))) %>% 
+                # with at least 1 child
                 .[.[[n.all]] - .[[n.adult]] > 0, ]
+        # l <- grep("^b4_", names(d))
+        # w <- d[ , l] < 18
+        # d <- d %>% 
+        #         .[unique(which(w, arr.ind = TRUE)[ , 1]), ] %>% 
+        #         # structure of families: single parent
+        #         .[.[[type]] %in% c(321, 322, 331, 332), ] %>% 
+        #         # with children
+        #         .[.[[n.all]] - .[[n.adult]] > 0, ]
         p.single_parent <- p.prop(df = d, w = weight)
         names(p.single_parent) <- "Overall single-parent families"
         
         ##### male single-parent households #####
         # children are under 18: dependent children
-        d <- df
-        l <- grep("^b4_", names(d))
-        w <- d[ , l] < 18
-        d <- d %>% 
-                .[unique(which(w, arr.ind = TRUE)[ , 1]), ] %>% 
-                # male head 
-                .[.[[sex]] == 1, ] %>% 
-                # structure of families: single parent
-                .[.[[type]] %in% c(321, 322, 331, 332), ] %>% 
-                # with children
+        d <- df %>% 
+                # having members who are under 18
+                filter_at(vars(matches("^b4_")), any_vars(. < 18)) %>% 
+                # male head
+                filter_at(sex, all_vars(. == 1)) %>% 
+                # structure of family: single-parent family
+                filter_at(type, all_vars(. %in% c(321, 322, 331, 332))) %>%
+                # whith at least 1 child
                 .[.[[n.all]] - .[[n.adult]] > 0, ]
+        # d <- df
+        # l <- grep("^b4_", names(d))
+        # w <- d[ , l] < 18
+        # d <- d %>% 
+        #         .[unique(which(w, arr.ind = TRUE)[ , 1]), ] %>% 
+        #         # male head 
+        #         .[.[[sex]] == 1, ] %>% 
+        #         # structure of families: single parent
+        #         .[.[[type]] %in% c(321, 322, 331, 332), ] %>% 
+        #         # with children
+        #         .[.[[n.all]] - .[[n.adult]] > 0, ]
         p.m_single_parent <- p.prop(df = d, w = weight)
         names(p.m_single_parent) <- "Male single-parent families"
         
