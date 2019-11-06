@@ -3,7 +3,7 @@
 
 ##### prep and options #####
 # set working directory
-setwd("~/R_wd/")
+setwd("D:/R_wd/")
 # clear objects
 rm(list = ls())
 # load the packages
@@ -141,19 +141,8 @@ p_single_female_parent <- p.prop(d, "a21", "indi_inc", t)
 d <- df %>% 
         # having 1 or more children
         filter((a8 - a12) > 0) %>% 
-        filter_at(vars(matches("^b4_")), any_vars(. < 18)) %>% 
-        .[.[[type]] %in% c(321, 322, 331, 332), ]
-p.prop(d, "a21", "indi_inc", t)
-
-# test
-n.all <- "a8"
-n.adult <- "a12"
-type <- "a18"
-d <- df %>% 
-        .[.[[n.all]] - .[[n.adult]] > 0, ] %>%
-        filter_at(vars(matches("^b4_")), any_vars(. < 18)) %>% 
-        filter_at(type, all_vars(. %in% c(321, 322, 331, 332)))
-p.prop(d, "a21", "indi_inc", t)
+        filter_at(vars(matches("^b4_")), any_vars(. < 18 & . > 0))
+p_with_children <- p.prop(d, "a21", "indi_inc", t)
 
 # household with children (0 - 5) -----------------------------------------
 
@@ -162,7 +151,7 @@ d <- df %>%
         filter((a8 - a12) > 0) %>% 
         filter_at(vars(matches("^b4_")), any_vars(. < 6 & . >= 0))
         # filter((a8 - a12) > 0)
-p.prop(d, "a21", "indi_inc", t)
+p_with_children5 <- p.prop(d, "a21", "indi_inc", t)
 
 
 # household with children (0 - 11) ----------------------------------------
@@ -172,7 +161,7 @@ d <- df %>%
         filter((a8 - a12) > 0) %>% 
         filter_at(vars(matches("^b4_")), any_vars(. < 12 & . >= 0))
 # filter((a8 - a12) > 0)
-p.prop(d, "a21", "indi_inc", t)
+p_with_children11 <- p.prop(d, "a21", "indi_inc", t)
 
 # household with children (0 - 17) ----------------------------------------
 
@@ -181,7 +170,7 @@ d <- df %>%
         filter((a8 - a12) > 0) %>% 
         filter_at(vars(matches("^b4_")), any_vars(. < 18 & . >= 0))
 # filter((a8 - a12) > 0)
-p.prop(d, "a21", "indi_inc", t)
+p_with_children17 <- p.prop(d, "a21", "indi_inc", t)
 
 # overall population ------------------------------------------------------
 

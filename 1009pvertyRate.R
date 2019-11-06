@@ -1,5 +1,5 @@
 rm(list = ls())
-source("~/Github_CFRC/misc/func_PovertyRate_tmp.R")
+source("~/Github_CFRC/misc/func_PovertyRate.R")
 setwd("D:/R_wd/tw_inc/")
 
 # load Rdata --------------------------------------------------------------
@@ -55,8 +55,11 @@ p2018 <- poverty_rate(df = df.inc107, weight = "a20", year = 2018) %>%
 l <- grep("^p[2][0][0-9][0-9]", names(.GlobalEnv), value = TRUE)
 data.list <- do.call("list", mget(l))
 p_all <- do.call(cbind, data.list) %>% 
-        select(sort(names(.), decreasing = FALSE))
+        select(sort(names(.), decreasing = FALSE)) %>% 
+        rownames_to_column() %>% 
+        rename(type = rowname)
 poverty.rate.tw <- p_all
-save(poverty.rate.tw, file = "R data files/poverty.rate.tw_DGBAS.RData")
-
-
+save(poverty.rate.tw, file = "R data files/poverty.rate.tw.RData")
+saveRDS(poverty.rate.tw, file = "R data files/poverty.rate.tw.rds")
+# write_sas(data = poverty.rate.tw, path = "R data files/poverty.sas7bdat")
+write_excel_csv(poverty.rate.tw, path = "R data files/poverty.rate.tw.csv")

@@ -30,3 +30,17 @@ dbWriteTable(conn = con, name = "df3", value = df2, overwrite = TRUE, row.names 
 odbc::dbWriteTable(conn = con, name = "iris", value = iris, overwrite = TRUE) 
 # DBI::dbAppendTable(conn = con, name = "df", value = df2, append = TRUE) 
 gc()
+
+rm(list = ls())
+file_path_inc <- "https://cfrc.tbcloud.tk/index.php/s/bcqXSXEB3FjzakX/download"
+load(url(file_path_inc))
+
+write_csv(df.inc104, path = "104.inc.csv")
+names(df.inc104)
+sapply(df.inc104, typeof)
+
+write_csv(iris, path = "iris.csv", col_names = TRUE)
+names(iris)
+s <- sapply(iris, typeof)
+dbSendStatement(conn = con, "CREATE TABLE `test` (`col1` double, `col2` doubl)")
+
