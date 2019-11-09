@@ -1,6 +1,6 @@
 rm(list = ls())
-source("~/Github_CFRC/misc/func_PovertyRate.R")
-setwd("D:/R_wd/tw_inc/")
+source("~/Github/misc/func_PovertyRate.R")
+setwd("i:/R_wd/tw_inc/")
 
 # load Rdata --------------------------------------------------------------
 
@@ -59,7 +59,7 @@ p_all <- do.call(cbind, data.list) %>%
         rownames_to_column() %>% 
         rename(type = rowname)
 poverty.rate.tw <- p_all
-save(poverty.rate.tw, file = "R data files/poverty.rate.tw.RData")
-saveRDS(poverty.rate.tw, file = "R data files/poverty.rate.tw.rds")
+save(poverty.rate.tw, file = "R data files/poverty rates/poverty.rate.tw.RData")
+saveRDS(poverty.rate.tw, file = "R data files/poverty rates/poverty.rate.tw.rds")
 # write_sas(data = poverty.rate.tw, path = "R data files/poverty.sas7bdat")
 write_excel_csv(poverty.rate.tw, path = "R data files/poverty.rate.tw.csv")
