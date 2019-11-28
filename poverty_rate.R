@@ -53,7 +53,7 @@ p.prop <- function(data, weight, inc, threshold) {
         i <- data[[inc]]
         # replicate income by weight
         w1 <- i[rep(1:length(i), times = w)]
-        y <- w1 < t
+        y <- w1 < threshold
         p <- length(y[y == TRUE]) / length(y) * 100
         return(p)
         }
@@ -170,7 +170,7 @@ p_with_children <- p.prop(data = d,
                           inc = "eq_inc", 
                           threshold = t)
 
-# household with children (0 - 5) -----------------------------------------
+# household with children (<6) --------------------------------------------
 
 d <- df %>% 
         # having 1 or more children
@@ -181,7 +181,7 @@ p_with_children5 <- p.prop(data = d,
                            inc = "eq_inc", 
                            threshold = t)
 
-# household with children (0 - 11) ----------------------------------------
+# household with children (<12) -------------------------------------------
 
 d <- df %>% 
         # having 1 or more children
@@ -191,6 +191,147 @@ p_with_children11 <- p.prop(data = d,
                             weight = "a20", 
                             inc = "eq_inc", 
                             threshold = t)
+
+# household with children by group of numbers -----------------------------
+d <- df %>% 
+        # having 1 or more children
+        filter_at(vars(matches("^b4_")), any_vars(. < 18 & . >= 0))
+
+# grep
+l <- grep("^b4_", names(d))
+
+# nmbers of children
+d$`n.children` <- NA
+for(i in 1:nrow(d)) {
+        d$`n.children`[i] <- length(which(d[i, l] < 18 & d[i, l] >= 0))
+        }
+# mutate by groups of age
+d <- d %>% 
+        mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
+                                      n.children > 1 & n.children <= 2 ~ 2, 
+                                      n.children >= 3 ~ 3)) %>%         
+        mutate_at(vars(matches("g.children")), as.factor)
+# summary
+summarytools::freq(d$g.children)
+
+# having 1 child
+d1 <- d %>% 
+        filter(g.children == 1)
+
+p_with_children_1c <- p.prop(data = d1, 
+                             weight = "a20", 
+                             inc = "eq_inc", 
+                             threshold = t)
+# having 2 children
+d2 <- d %>% 
+        filter(g.children == 2)
+
+p_with_children_2c <- p.prop(data = d2, 
+                             weight = "a20", 
+                             inc = "eq_inc", 
+                             threshold = t)
+
+# having 3 or more children
+d3 <- d %>% 
+        filter(g.children == 3)
+
+p_with_children_3c <- p.prop(data = d3, 
+                             weight = "a20", 
+                             inc = "eq_inc", 
+                             threshold = t)
+
+# household with children(<6) by group of numbers -------------------------
+d <- df %>% 
+        # having 1 or more children
+        filter_at(vars(matches("^b4_")), any_vars(. < 6 & . >= 0))
+
+# grep
+l <- grep("^b4_", names(d))
+
+# nmbers of children
+d$`n.children` <- NA
+for(i in 1:nrow(d)) {
+        d$`n.children`[i] <- length(which(d[i, l] < 6 & d[i, l] >= 0))
+        }
+# mutate by groups of age
+d <- d %>% 
+        mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
+                                      n.children > 1 & n.children <= 2 ~ 2, 
+                                      n.children >= 3 ~ 3))
+# summary
+summarytools::freq(d$g.children)
+# having 1 child
+d1 <- d %>% 
+        filter(g.children == 1)
+
+p_with_children5_1c <- p.prop(data = d1, 
+                             weight = "a20", 
+                             inc = "eq_inc", 
+                             threshold = t)
+# having 2 children
+d2 <- d %>% 
+        filter(g.children == 2)
+
+p_with_children5_2c <- p.prop(data = d2, 
+                             weight = "a20", 
+                             inc = "eq_inc", 
+                             threshold = t)
+
+# having 3 or more children
+d3 <- d %>% 
+        filter(g.children == 3)
+
+p_with_children5_3c <- p.prop(data = d3, 
+                             weight = "a20", 
+                             inc = "eq_inc", 
+                             threshold = t)
+
+# household with children(<12) by group of numbers -------------------------
+d <- df %>% 
+        # having 1 or more children
+        filter_at(vars(matches("^b4_")), any_vars(. < 12 & . >= 0))
+
+# grep
+l <- grep("^b4_", names(d))
+
+# nmbers of children
+d$`n.children` <- NA
+for(i in 1:nrow(d)) {
+        d$`n.children`[i] <- length(which(d[i, l] < 12 & d[i, l] >= 0))
+        }
+# mutate by groups of age
+d <- d %>% 
+        mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
+                                      n.children > 1 & n.children <= 2 ~ 2, 
+                                      n.children >= 3 ~ 3))
+# summary
+tbl <- summarytools::freq(d$g.children, 
+                          report.nas = FALSE); tbl
+# having 1 child
+d1 <- d %>% 
+        filter(g.children == 1)
+
+p_with_children11_1c <- p.prop(data = d1, 
+                             weight = "a20", 
+                             inc = "eq_inc", 
+                             threshold = t)
+# having 2 children
+d2 <- d %>% 
+        filter(g.children == 2)
+
+p_with_children11_2c <- p.prop(data = d2, 
+                             weight = "a20", 
+                             inc = "eq_inc", 
+                             threshold = t)
+
+# having 3 or more children
+d3 <- d %>% 
+        filter(g.children == 3)
+
+p_with_children11_3c <- p.prop(data = d3, 
+                             weight = "a20", 
+                             inc = "eq_inc", 
+                             threshold = t)
 
 # overall population ------------------------------------------------------
 

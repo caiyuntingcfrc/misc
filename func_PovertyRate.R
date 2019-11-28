@@ -1,8 +1,7 @@
 ##### author: CAI YUN-TING ######
 ##### prep and options #####
 # list of packages
-list.packages <- c("tidyverse", "magrittr", "haven", 
-       "gridExtra", "summarytools", "vcd")
+list.packages <- c("tidyverse", "magrittr")
 # check if the packages are installed
 new.packages <- list.packages[!(list.packages %in% installed.packages()[ , "Package"])]
 # install new packages
