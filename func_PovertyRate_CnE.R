@@ -16,7 +16,7 @@ options(scipen = 999)
 ##### function -- poverty rate #####
 poverty_rate <- function(df, weight, 
                          n.all = "a8", sex = "a7", aged = "a19", 
-                         type = "a18", n.adult = "a12", year) {
+                         type = "a18", n.adult = "a12") {
         
         ##### weight by age #####
         n_all <- df[[n.all]] 
@@ -64,30 +64,25 @@ poverty_rate <- function(df, weight,
         
         ##### Household with children #####
         d <- df %>% 
-                # having 1 or more children
-                filter((a8 - a12) > 0) %>% 
                 # less than 18 years old
                 filter_at(vars(matches("^b4_")), any_vars(. < 18))
         p.with_children <- p.prop(data = d)
         names(p.with_children) <- "Household with children (<18)"
-        
-        ##### Household with children 0-5 #####
+
+        ##### Household with children <12 #####
         d <- df %>% 
-                # having 1 or more children
-                filter((a8 - a12) > 0) %>% 
+                # less than 12 years old
+                filter_at(vars(matches("^b4_")), any_vars(. < 12 & . >= 0))
+        p.with_children11 <- p.prop(data = d)
+        names(p.with_children11) <- "Household with children (<12)"
+        
+        ##### Household with children <6 #####
+        d <- df %>% 
                 # less than 6 years old
                 filter_at(vars(matches("^b4_")), any_vars(. < 6 & . >= 0))
         p.with_children5 <- p.prop(data = d)
         names(p.with_children5) <- "Household with children (<6)"
         
-        ##### Household with children 0-11 #####
-        d <- df %>% 
-                # having 1 or more children
-                filter((a8 - a12) > 0) %>% 
-                # less than 12 years old
-                filter_at(vars(matches("^b4_")), any_vars(. < 12 & . >= 0))
-        p.with_children11 <- p.prop(data = d)
-        names(p.with_children11) <- "Household with children (<12)"
         
         ##### Household with children by group of numbers #####
         d <- df %>% 
@@ -103,8 +98,7 @@ poverty_rate <- function(df, weight,
         # mutate by groups of age
         d <- d %>% 
                 mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
-                                              n.children > 1 & n.children <= 2 ~ 2, 
-                                              n.children >= 3 ~ 3)) %>%         
+                                              n.children >= 2 ~ 2)) %>%         
                 mutate_at(vars(matches("g.children")), as.factor)
         
         ##### Household with children (<18) having 1 child #####
@@ -113,18 +107,12 @@ poverty_rate <- function(df, weight,
         
         p.with_children_1c <- p.prop(data = d1)
         names(p.with_children_1c) <- "Household with children (<18) (1 child)"
-        ##### Household with children (<18) having 2 children #####
+        ##### Household with children (<18) having >= 2 children #####
         d2 <- d %>% 
                 filter(g.children == 2)
         
         p.with_children_2c <- p.prop(data = d2)
-        names(p.with_children_2c) <- "Household with children (<18) (2 children)"
-        ##### Household with children (<18) having 3 or more children #####
-        d3 <- d %>% 
-                filter(g.children == 3)
-        
-        p.with_children_3c <- p.prop(data = d3)
-        names(p.with_children_3c) <- "Household with children (<18) (>3 children)"
+        names(p.with_children_2c) <- "Household with children (<18) (>=2 children)"
         
         ##### Household with children (<12) having 1 child #####
         d <- df %>% 
@@ -140,8 +128,7 @@ poverty_rate <- function(df, weight,
         # mutate by groups of age
         d <- d %>% 
                 mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
-                                              n.children > 1 & n.children <= 2 ~ 2, 
-                                              n.children >= 3 ~ 3)) %>%         
+                                              n.children >= 2 ~ 2)) %>%         
                 mutate_at(vars(matches("g.children")), as.factor)
         
         d1 <- d %>% 
@@ -149,17 +136,11 @@ poverty_rate <- function(df, weight,
         p.with_children11_1c <- p.prop(data = d1)
         names(p.with_children11_1c) <- "Household with children (<12) (1 child)"
         
-        ##### Household with children (<12) having 2 children #####
+        ##### Household with children (<12) having >= 2 children #####
         d2 <- d %>% 
                 filter(g.children == 2)
         p.with_children11_2c <- p.prop(data = d2)
-        names(p.with_children11_2c) <- "Household with children (<12) (2 children)"
-        
-        ##### Household with children (<12) having 3 or more children #####
-        d3 <- d %>% 
-                filter(g.children == 3)
-        p.with_children11_3c <- p.prop(data = d3)
-        names(p.with_children11_3c) <- "Household with children (<12) (>3 children)"
+        names(p.with_children11_2c) <- "Household with children (<12) (>=2 children)"
         
         ##### Household with children (<6) having 1 child #####
         d <- df %>% 
@@ -175,8 +156,7 @@ poverty_rate <- function(df, weight,
         # mutate by groups of age
         d <- d %>% 
                 mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
-                                              n.children > 1 & n.children <= 2 ~ 2, 
-                                              n.children >= 3 ~ 3)) %>%         
+                                              n.children >= 2 ~ 2)) %>%         
                 mutate_at(vars(matches("g.children")), as.factor)
         
         d1 <- d %>% 
@@ -184,26 +164,270 @@ poverty_rate <- function(df, weight,
         p.with_children5_1c <- p.prop(data = d1)
         names(p.with_children5_1c) <- "Household with children (<6) (1 child)"
         
-        ##### Household with children (<6) having 2 children #####
+        ##### Household with children (<6) having >= 2 children #####
         d2 <- d %>% 
                 filter(g.children == 2)
         p.with_children5_2c <- p.prop(data = d2)
-        names(p.with_children5_2c) <- "Household with children (<6) (2 children)"
+        names(p.with_children5_2c) <- "Household with children (<6) (>=2 children)"
         
-        ##### Household with children (<6) having 3 or more children #####
-        d3 <- d %>% 
-                filter(g.children == 3)
-        p.with_children5_3c <- p.prop(data = d3)
-        names(p.with_children5_3c) <- "Household with children (<6) (>3 children)"
+        ##### Core family with children #####
+        d <- df %>% 
+                # core family
+                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # less than 18 years old
+                filter_at(vars(matches("^b4_")), any_vars(. < 18))
+        core.with_children <- p.prop(data = d)
+        names(core.with_children) <- "Core family with children (<18)"
+
+        ##### Core family with children <12 #####
+        d <- df %>% 
+                # core family
+                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # less than 12 years old
+                filter_at(vars(matches("^b4_")), any_vars(. < 12 & . >= 0))
+        core.with_children11 <- p.prop(data = d)
+        names(core.with_children11) <- "Core family with children (<12)"
+        
+        ##### Core family with children <6 #####
+        d <- df %>% 
+                # core family
+                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # less than 6 years old
+                filter_at(vars(matches("^b4_")), any_vars(. < 6 & . >= 0))
+        core.with_children5 <- p.prop(data = d)
+        names(core.with_children5) <- "Core Family with children (<6)"
+        
+        ##### Core family with children by group of numbers #####
+        d <- df %>% 
+                # core family
+                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # having 1 or more children
+                filter_at(vars(matches("^b4_")), any_vars(. < 18 & . >= 0))
+        # grep
+        l <- grep("^b4_", names(d))
+        # nmbers of children
+        d$`n.children` <- NA
+        for(i in 1:nrow(d)) {
+                d$`n.children`[i] <- length(which(d[i, l] < 18 & d[i, l] >= 0))
+                }
+        # mutate by groups of age
+        d <- d %>% 
+                mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
+                                              n.children >= 2 ~ 2)) %>%         
+                mutate_at(vars(matches("g.children")), as.factor)
+        
+        ##### Core family with children (<18) having 1 child #####
+        d1 <- d %>% 
+                filter(g.children == 1)
+        
+        core.with_children_1c <- p.prop(data = d1)
+        names(core.with_children_1c) <- "Core family with children (<18) (1 child)"
+        ##### Core family with children (<18) having >= 2 children #####
+        d2 <- d %>% 
+                filter(g.children == 2)
+        
+        core.with_children_2c <- p.prop(data = d2)
+        names(core.with_children_2c) <- "Core family with children (<18) (>=2 children)"
+        
+        ##### Core family with children (<12) having 1 child #####
+        d <- df %>% 
+                # core family
+                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # having 1 or more children
+                filter_at(vars(matches("^b4_")), any_vars(. < 12 & . >= 0))
+        # grep
+        l <- grep("^b4_", names(d))
+        # nmbers of children
+        d$`n.children` <- NA
+        for(i in 1:nrow(d)) {
+                d$`n.children`[i] <- length(which(d[i, l] < 12 & d[i, l] >= 0))
+        }
+        # mutate by groups of age
+        d <- d %>% 
+                mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
+                                              n.children >= 2 ~ 2)) %>%         
+                mutate_at(vars(matches("g.children")), as.factor)
+        
+        d1 <- d %>% 
+                filter(g.children == 1)
+        core.with_children11_1c <- p.prop(data = d1)
+        names(core.with_children11_1c) <- "Core family with children (<12) (1 child)"
+        
+        ##### Core family with children (<12) having >= 2 children #####
+        d2 <- d %>% 
+                filter(g.children == 2)
+        core.with_children11_2c <- p.prop(data = d2)
+        names(core.with_children11_2c) <- "Core family with children (<12) (>=2 children)"
+        
+        ##### Core family with children (<6) having 1 child #####
+        d <- df %>% 
+                # core family
+                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # having 1 or more children
+                filter_at(vars(matches("^b4_")), any_vars(. < 6 & . >= 0))
+        # grep
+        l <- grep("^b4_", names(d))
+        # nmbers of children
+        d$`n.children` <- NA
+        for(i in 1:nrow(d)) {
+                d$`n.children`[i] <- length(which(d[i, l] < 6 & d[i, l] >= 0))
+        }
+        # mutate by groups of age
+        d <- d %>% 
+                mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
+                                              n.children >= 2 ~ 2)) %>%         
+                mutate_at(vars(matches("g.children")), as.factor)
+        
+        d1 <- d %>% 
+                filter(g.children == 1)
+        core.with_children5_1c <- p.prop(data = d1)
+        names(core.with_children5_1c) <- "Core family with children (<6) (1 child)"
+        
+        ##### Core family with children (<6) having >= 2 children #####
+        d2 <- d %>% 
+                filter(g.children == 2)
+        core.with_children5_2c <- p.prop(data = d2)
+        names(core.with_children5_2c) <- "Core family with children (<6) (>=2 children)"
+        
+        ##### Core family with children #####
+        d <- df %>% 
+                # core family
+                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # less than 18 years old
+                filter_at(vars(matches("^b4_")), any_vars(. < 18))
+        core.with_children <- p.prop(data = d)
+        names(core.with_children) <- "Core family with children (<18)"
+
+        ##### Core family with children <12 #####
+        d <- df %>% 
+                # core family
+                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # less than 12 years old
+                filter_at(vars(matches("^b4_")), any_vars(. < 12 & . >= 0))
+        core.with_children11 <- p.prop(data = d)
+        names(core.with_children11) <- "Core family with children (<12)"
+        
+        ##### Core family with children <6 #####
+        d <- df %>% 
+                # core family
+                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # less than 6 years old
+                filter_at(vars(matches("^b4_")), any_vars(. < 6 & . >= 0))
+        core.with_children5 <- p.prop(data = d)
+        names(core.with_children5) <- "Core Family with children (<6)"
+        
+        ##### Stem family with children by group of numbers #####
+        d <- df %>% 
+                # stem family
+                filter_at(type, all_vars(. %in% c(611, 612, 
+                                                  621, 622, 
+                                                  631, 632))) %>%
+                # having 1 or more children
+                filter_at(vars(matches("^b4_")), any_vars(. < 18 & . >= 0))
+        # grep
+        l <- grep("^b4_", names(d))
+        # nmbers of children
+        d$`n.children` <- NA
+        for(i in 1:nrow(d)) {
+                d$`n.children`[i] <- length(which(d[i, l] < 18 & d[i, l] >= 0))
+                }
+        # mutate by groups of age
+        d <- d %>% 
+                mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
+                                              n.children >= 2 ~ 2)) %>%         
+                mutate_at(vars(matches("g.children")), as.factor)
+        
+        ##### Stem family with children (<18) having 1 child #####
+        d1 <- d %>% 
+                filter(g.children == 1)
+        
+        stem.with_children_1c <- p.prop(data = d1)
+        names(stem.with_children_1c) <- "Stem family with children (<18) (1 child)"
+        ##### Stem family with children (<18) having >= 2 children #####
+        d2 <- d %>% 
+                filter(g.children == 2)
+        
+        stem.with_children_2c <- p.prop(data = d2)
+        names(stem.with_children_2c) <- "Stem family with children (<18) (>=2 children)"
+        
+        ##### Stem family with children (<12) having 1 child #####
+        d <- df %>% 
+                # stem family
+                filter_at(type, all_vars(. %in% c(611, 612, 
+                                                  621, 622, 
+                                                  631, 632))) %>%
+                # having 1 or more children
+                filter_at(vars(matches("^b4_")), any_vars(. < 12 & . >= 0))
+        # grep
+        l <- grep("^b4_", names(d))
+        # nmbers of children
+        d$`n.children` <- NA
+        for(i in 1:nrow(d)) {
+                d$`n.children`[i] <- length(which(d[i, l] < 12 & d[i, l] >= 0))
+        }
+        # mutate by groups of age
+        d <- d %>% 
+                mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
+                                              n.children >= 2 ~ 2)) %>%         
+                mutate_at(vars(matches("g.children")), as.factor)
+        
+        d1 <- d %>% 
+                filter(g.children == 1)
+        stem.with_children11_1c <- p.prop(data = d1)
+        names(stem.with_children11_1c) <- "Stem family with children (<12) (1 child)"
+        
+        ##### Stem family with children (<12) having >= 2 children #####
+        d2 <- d %>% 
+                filter(g.children == 2)
+        stem.with_children11_2c <- p.prop(data = d2)
+        names(stem.with_children11_2c) <- "Stem family with children (<12) (>=2 children)"
+        
+        ##### Stem family with children (<6) having 1 child #####
+        d <- df %>% 
+                # stem family
+                filter_at(type, all_vars(. %in% c(611, 612, 
+                                                  621, 622, 
+                                                  631, 632))) %>%
+                # having 1 or more children
+                filter_at(vars(matches("^b4_")), any_vars(. < 6 & . >= 0))
+        # grep
+        l <- grep("^b4_", names(d))
+        # nmbers of children
+        d$`n.children` <- NA
+        for(i in 1:nrow(d)) {
+                d$`n.children`[i] <- length(which(d[i, l] < 6 & d[i, l] >= 0))
+        }
+        # mutate by groups of age
+        d <- d %>% 
+                mutate(g.children = case_when(n.children > 0 & n.children <= 1 ~ 1,
+                                              n.children >= 2 ~ 2)) %>%         
+                mutate_at(vars(matches("g.children")), as.factor)
+        
+        d1 <- d %>% 
+                filter(g.children == 1)
+        stem.with_children5_1c <- p.prop(data = d1)
+        names(stem.with_children5_1c) <- "Stem family with children (<6) (1 child)"
+        
+        ##### Stem family with children (<6) having >= 2 children #####
+        d2 <- d %>% 
+                filter(g.children == 2)
+        stem.with_children5_2c <- p.prop(data = d2)
+        names(stem.with_children5_2c) <- "Stem family with children (<6) (>=2 children)"
+        
         ##### return the results #####
-        l <- c(p.with_children, p.with_children11, p.with_children5,
-               p.with_children_1c, p.with_children_2c, p.with_children_3c, 
-               p.with_children11_1c, p.with_children11_2c, p.with_children11_3c, 
-               p.with_children5_1c, p.with_children5_2c, p.with_children5_3c)
-        out.table <- data.frame(l, row.names = names(l))
-        # l <- mget(grep("^p.with", ls(), value = TRUE))
-        # out.table <- do.call(rbind, l) %>% 
-        #         data.frame(., row.names = sapply(l, names))
-        colnames(out.table) <- year
+        # deprecated
+        # l <- c(p.with_children, p.with_children11, p.with_children5,
+        #        p.with_children_1c, p.with_children_2c, 
+        #        p.with_children11_1c, p.with_children11_2c, 
+        #        p.with_children5_1c, p.with_children5_2c, 
+        #        core.with_children, core.with_children11, core.with_children5, 
+        #        core.with_children_1c, core.with_children_2c, 
+        #        core.with_children11_1c, core.with_children11_2c, 
+        #        core.with_children5_1c, core.with_children5_2c)
+        # out.table <- data.frame(l, row.names = names(l))
+        l <- mget(grep("^p.with|^core.with|^stem.with", ls(), value = TRUE))
+        out.table <- do.call(rbind, l) %>%
+                data.frame(., row.names = sapply(l, names))
+        colnames(out.table) <- df$year[1] + 1911L
         return(out.table)
-}
+        }
