@@ -289,32 +289,38 @@ poverty_rate <- function(df, weight,
         core.with_children5_2c <- p.prop(data = d2)
         names(core.with_children5_2c) <- "Core family with children (<6) (>=2 children)"
         
-        ##### Core family with children #####
+        ##### stem family with children #####
         d <- df %>% 
-                # core family
-                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # stem family
+                filter_at(type, all_vars(. %in% c(611, 612, 
+                                                  621, 622, 
+                                                  631, 632))) %>%
                 # less than 18 years old
                 filter_at(vars(matches("^b4_")), any_vars(. < 18))
-        core.with_children <- p.prop(data = d)
-        names(core.with_children) <- "Core family with children (<18)"
+        stem.with_children <- p.prop(data = d)
+        names(stem.with_children) <- "stem family with children (<18)"
 
-        ##### Core family with children <12 #####
+        ##### stem family with children <12 #####
         d <- df %>% 
-                # core family
-                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # stem family
+                filter_at(type, all_vars(. %in% c(611, 612, 
+                                                  621, 622, 
+                                                  631, 632))) %>%
                 # less than 12 years old
                 filter_at(vars(matches("^b4_")), any_vars(. < 12 & . >= 0))
-        core.with_children11 <- p.prop(data = d)
-        names(core.with_children11) <- "Core family with children (<12)"
+        stem.with_children11 <- p.prop(data = d)
+        names(stem.with_children11) <- "stem family with children (<12)"
         
-        ##### Core family with children <6 #####
+        ##### stem family with children <6 #####
         d <- df %>% 
-                # core family
-                filter_at(type, all_vars(. %in% c(421, 422, 431, 432))) %>%
+                # stem family
+                filter_at(type, all_vars(. %in% c(611, 612, 
+                                                  621, 622, 
+                                                  631, 632))) %>%
                 # less than 6 years old
                 filter_at(vars(matches("^b4_")), any_vars(. < 6 & . >= 0))
-        core.with_children5 <- p.prop(data = d)
-        names(core.with_children5) <- "Core Family with children (<6)"
+        stem.with_children5 <- p.prop(data = d)
+        names(stem.with_children5) <- "stem Family with children (<6)"
         
         ##### Stem family with children by group of numbers #####
         d <- df %>% 

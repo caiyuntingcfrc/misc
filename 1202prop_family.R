@@ -2,9 +2,9 @@
 # prep and options --------------------------------------------------------
 # rm
 rm(list = ls())
-source("~/Github_CFRC/misc/func_prop_withChildren.R")
-source("~/Github_CFRC/misc/func_prop_withElder.R")
-setwd("d:/R_wd/tw_inc/")
+source("~/Github/misc/func_prop_withChildren.R")
+source("~/Github/misc/func_prop_withElder.R")
+setwd("i:/R_wd/tw_inc/")
 path_list <- list.files("R data files/", pattern = "^df_") %>% 
         paste(getwd(), "/R data files/", ., sep = "")
 lapply(path_list, load, .GlobalEnv)
@@ -219,7 +219,7 @@ colnames(prop.stem85) <- c("year", "prop.stem85")
 rm(d.stem)
 rm(l)
 
-save.image("poverty rates/prop.eamily.RData")
+save.image("/prop.family.RData")
 # cbind -------------------------------------------------------------------
 
 clist <- grep("^prop.core|^prop.h|^prop.stem", ls(), value = TRUE)

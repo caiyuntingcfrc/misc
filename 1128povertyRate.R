@@ -1,6 +1,6 @@
 rm(list = ls())
-source("~/Github_CFRC/misc/func_PovertyRate_CnE.R")
-setwd("d:/R_wd/tw_inc/")
+source("~/Github/misc/func_PovertyRate_CnE.R")
+setwd("i:/R_wd/tw_inc/")
 
 # load Rdata --------------------------------------------------------------
 
