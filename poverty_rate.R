@@ -170,8 +170,33 @@ p_with_children <- p.prop(data = d,
                           inc = "eq_inc", 
                           threshold = t)
 
-# household with children (<12) -------------------------------------------
+##### test proportion #####
+d <- df.inc107
+# grep
+l <- grep("^b4_", names(d))
 
+# nmbers of children
+d$`n.children` <- NA
+for(i in 1:nrow(d)) {
+        d$`n.children`[i] <- length(which(d[i, l] < 12 & d[i, l] >= 0))
+        }
+summarytools::freq(d$n.children)
+# mutate by groups of age
+d <- d %>% 
+        mutate(with_children = case_when(n.children >= 1  ~ 1,
+                                         n.children < 1 ~ 0
+        )) %>%         
+        mutate_at(vars(matches("with_children")), as.factor)
+# summary
+summarytools::freq(d$with_children)
+# weigh
+w <- d[["a20"]]
+c <- d[["with_children"]]
+# replicate by weight
+w1 <- c[rep(1:length(c), times = w)]
+table1 <- summarytools::freq(w1)[[6]]
+# household with children (<12) -------------------------------------------
+d <- df.inc107
 d <- df %>% 
         # having 1 or more children
         filter_at(vars(matches("^b4_")), any_vars(. < 12 & . >= 0))
