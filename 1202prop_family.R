@@ -177,7 +177,6 @@ colnames(prop.core85) <- c("year", "prop.core85")
 # rm
 rm(d.core)
 
-
 # stem family with elder -----------------------------------------------
 d.stem <- lapply(l, filter_at, "a18", all_vars(. %in% c(611, 612, 
                                                         621, 622, 

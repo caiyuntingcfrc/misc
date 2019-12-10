@@ -1,21 +1,18 @@
 ##### author: CAI YUN-TING ######
 ##### prep and options #####
+# options
+options(scipen = 999, 
+        install.packages.compile.from.source = "always")
 # list of packages
-list.packages <- c("tidyverse", "magrittr")
+list.packages <- c("tidyverse", "sjstats")
 # check if the packages are installed
 new.packages <- list.packages[!(list.packages %in% installed.packages()[ , "Package"])]
 # install new packages
-if(length(new.packages)) install.packages(new.packages)
+if(length(new.packages)) install.packages(new.packages, type = "source")
 # load the packages
 lapply(list.packages, require, character.only = TRUE)
 # remove lists
 rm(list.packages, new.packages)
-# options
-options(scipen = 999)
-# options for summarytools
-st_options(style = "simple",
-           round.digits = 4,
-           ctable.prop = "c")
 
 ##### function -- poverty rate #####
 poverty_rate <- function(df, weight, 
@@ -30,23 +27,29 @@ poverty_rate <- function(df, weight,
         n <- df[[n.all]]
         df <- df %>% 
                 mutate(sqrt_scale = sqrt(n),
-                       indi_inc = (itm400 - itm600) / sqrt_scale)
+                       eq_inc = (itm400 - itm600) / sqrt_scale)
         
         ##### poverty threshold #####
-        w <- df[[weight]]
-        i <- df[["indi_inc"]]
+        # weight table
+        wtab <- round(xtabs(df[[weight]] ~ df[["eq_inc"]]))
         # replicate income by weight
-        weighed <- i[rep(1:length(i), times = w)]
+        i <- names(wtab)
+        weighed <- mapply(rep, x = i, times = wtab)
+        weighed <- as.numeric(unlist(weighed, use.names = TRUE))
+        # replicate income by weight
+        # weighed <- i[rep(1:length(i), times = w)]
         # calculate the median and poverty threshold
         t <- median(weighed, na.rm = TRUE) * 0.5
         
         ##### function prop #####
         p.prop <- function(df, w) {
-                # weight
-                w <- df[[w]]
-                i <- df[["indi_inc"]]
+                # weight table
+                wtab <- round(xtabs(df[[w]] ~ df[["eq_inc"]]))
                 # replicate income by weight
-                weighed <- i[rep(1:length(i), times = w)]
+                i <- names(wtab)
+                weighed <- mapply(rep, x = i, times = wtab)
+                weighed <- as.numeric(unlist(weighed, use.names = TRUE))
+                # weighed <- i[rep(1:length(i), times = w)]
                 r <- weighed < t
                 p <- length(r[r == TRUE]) / length(r) * 100
                 return(p)
@@ -170,14 +173,18 @@ poverty_rate <- function(df, weight,
         
         ##### Overall population #####
         d <- df
-        i <- d[["indi_inc"]]
+        i <- d[["eq_inc"]]
         n <- d[[n.all]]
         w <- d[[weight]]
-        # weigh by weight ("a21")
-        w1 <- i[rep(1:length(i), times = w)]
-        w2 <- n[rep(1:length(n), times = w)]
-        # weigh by numbers of people in the house ("a8")
-        weighed <- w1[rep(1:length(w1), times = w2)]
+        # weigh by numbers of people in the household
+        w1 <- i[rep(1:length(i), times = n)]
+        w2 <- w[rep(1:length(n), times = n)]
+        # weighed xtabs
+        wtab <- xtabs(w2 ~ w1)
+        v <- names(wtab)
+        weighed <- mapply(rep, times = wtab, x = v, SIMPLIFY = TRUE)
+        weighed <- as.numeric(unlist(weighed, use.names = FALSE))
+        # weighed <- w1[rep(1:length(w1), times = w2)]
         # below threshold
         r <- weighed < t
         # calculate the proportion
@@ -198,13 +205,17 @@ poverty_rate <- function(df, weight,
                 d$`n.children`[i] <- length(which(d[i, l] < 18 & d[i, l] >= 0))
                 }
         # weigh by weight
-        i <- d[["indi_inc"]]
+        i <- d[["eq_inc"]]
         n <- d[["n.children"]]
         w <- d[[weight]]
-        w1 <- i[rep(1:length(i), times = w)]
-        w2 <- n[rep(1:length(n), times = w)]
-        # weigh by numbers of children in the house
-        weighed <- w1[rep(1:length(w1), times = w2)]
+        # weigh by numbers of people in the household
+        w1 <- i[rep(1:length(i), times = n)]
+        w2 <- w[rep(1:length(n), times = n)]
+        # weighed xtabs
+        wtab <- xtabs(w2 ~ w1)
+        v <- names(wtab)
+        weighed <- mapply(rep, times = wtab, x = v, SIMPLIFY = TRUE)
+        weighed <- as.numeric(unlist(weighed, use.names = FALSE))
         # below threshold
         r <- weighed < t
         # calculate the proportion
@@ -224,13 +235,17 @@ poverty_rate <- function(df, weight,
                 d$`n.children`[i] <- length(which(d[i, l] < 6 & d[i, l] >= 0))
                 }
         # weigh by weight
-        i <- d[["indi_inc"]]
+        i <- d[["eq_inc"]]
         n <- d[["n.children"]]
         w <- d[[weight]]
-        w1 <- i[rep(1:length(i), times = w)]
-        w2 <- n[rep(1:length(n), times = w)]
-        # weigh by numbers of children in the house
-        weighed <- w1[rep(1:length(w1), times = w2)]
+        # weigh by numbers of people in the household
+        w1 <- i[rep(1:length(i), times = n)]
+        w2 <- w[rep(1:length(n), times = n)]
+        # weighed xtabs
+        wtab <- xtabs(w2 ~ w1)
+        v <- names(wtab)
+        weighed <- mapply(rep, times = wtab, x = v, SIMPLIFY = TRUE)
+        weighed <- as.numeric(unlist(weighed, use.names = FALSE))
         # below threshold
         r <- weighed < t
         # calculate the proportion
@@ -250,13 +265,17 @@ poverty_rate <- function(df, weight,
                 d$`n.children`[i] <- length(which(d[i, l] < 12 & d[i, l] >= 0))
                 }
         # weigh by weight
-        i <- d[["indi_inc"]]
+        i <- d[["eq_inc"]]
         n <- d[["n.children"]]
         w <- d[[weight]]
-        w1 <- i[rep(1:length(i), times = w)]
-        w2 <- n[rep(1:length(n), times = w)]
-        # weigh by numbers of children in the house
-        weighed <- w1[rep(1:length(w1), times = w2)]
+        # weigh by numbers of people in the household
+        w1 <- i[rep(1:length(i), times = n)]
+        w2 <- w[rep(1:length(n), times = n)]
+        # weighed xtabs
+        wtab <- xtabs(w2 ~ w1)
+        v <- names(wtab)
+        weighed <- mapply(rep, times = wtab, x = v, SIMPLIFY = TRUE)
+        weighed <- as.numeric(unlist(weighed, use.names = FALSE))
         # below threshold
         r <- weighed < t
         # calculate the proportion
@@ -274,13 +293,17 @@ poverty_rate <- function(df, weight,
         for(i in 1:nrow(d)) {
                 d$`n.elder`[i] <- length(which(d[i, l] >= 65))
                 }
-        i <- d[["indi_inc"]]
+        i <- d[["eq_inc"]]
         n <- d[["n.elder"]]
         w <- d[[weight]]
-        w1 <- i[rep(1:length(i), times = w)]
-        w2 <- n[rep(1:length(n), times = w)]
-        # weigh by numbers of aged in the house
-        weighed <- w1[rep(1:length(w1), times = w2)]
+        # weigh by numbers of people in the household
+        w1 <- i[rep(1:length(i), times = n)]
+        w2 <- w[rep(1:length(n), times = n)]
+        # weighed xtabs
+        wtab <- xtabs(w2 ~ w1)
+        v <- names(wtab)
+        weighed <- mapply(rep, times = wtab, x = v, SIMPLIFY = TRUE)
+        weighed <- as.numeric(unlist(weighed, use.names = FALSE))
         # below threshold
         r <- weighed < t
         # calculate the proportion
@@ -298,13 +321,17 @@ poverty_rate <- function(df, weight,
         for(i in 1:nrow(d)) {
                 d$`n.elder`[i] <- length(which(d[i, l] >= 75))
         }
-        i <- d[["indi_inc"]]
+        i <- d[["eq_inc"]]
         n <- d[["n.elder"]]
         w <- d[[weight]]
-        w1 <- i[rep(1:length(i), times = w)]
-        w2 <- n[rep(1:length(n), times = w)]
-        # weigh by numbers of aged in the house
-        weighed <- w1[rep(1:length(w1), times = w2)]
+        # weigh by numbers of people in the household
+        w1 <- i[rep(1:length(i), times = n)]
+        w2 <- w[rep(1:length(n), times = n)]
+        # weighed xtabs
+        wtab <- xtabs(w2 ~ w1)
+        v <- names(wtab)
+        weighed <- mapply(rep, times = wtab, x = v, SIMPLIFY = TRUE)
+        weighed <- as.numeric(unlist(weighed, use.names = FALSE))
         # below threshold
         r <- weighed < t
         # calculate the proportion
@@ -322,13 +349,17 @@ poverty_rate <- function(df, weight,
         for(i in 1:nrow(d)) {
                 d$`n.elder`[i] <- length(which(d[i, l] >= 85))
         }
-        i <- d[["indi_inc"]]
+        i <- d[["eq_inc"]]
         n <- d[["n.elder"]]
         w <- d[[weight]]
-        w1 <- i[rep(1:length(i), times = w)]
-        w2 <- n[rep(1:length(n), times = w)]
-        # weigh by numbers of aged in the house
-        weighed <- w1[rep(1:length(w1), times = w2)]
+        # weigh by numbers of people in the household
+        w1 <- i[rep(1:length(i), times = n)]
+        w2 <- w[rep(1:length(n), times = n)]
+        # weighed xtabs
+        wtab <- xtabs(w2 ~ w1)
+        v <- names(wtab)
+        weighed <- mapply(rep, times = wtab, x = v, SIMPLIFY = TRUE)
+        weighed <- as.numeric(unlist(weighed, use.names = FALSE))
         # below threshold
         r <- weighed < t
         # calculate the proportion
