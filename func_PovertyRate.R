@@ -1,33 +1,36 @@
 ##### author: CAI YUN-TING ######
 ##### prep and options #####
 # options
-options(scipen = 999, 
-        install.packages.compile.from.source = "always")
-# list of packages
-list.packages <- c("tidyverse", "sjstats")
-# check if the packages are installed
-new.packages <- list.packages[!(list.packages %in% installed.packages()[ , "Package"])]
-# install new packages
-if(length(new.packages)) install.packages(new.packages, type = "source")
-# load the packages
-lapply(list.packages, require, character.only = TRUE)
-# remove lists
-rm(list.packages, new.packages)
+devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
+ins.pack("tidyverse")
+# options(scipen = 999, 
+#         install.packages.compile.from.source = "always")
+# # list of packages
+# list.packages <- c("tidyverse", "sjstats")
+# # check if the packages are installed
+# new.packages <- list.packages[!(list.packages %in% installed.packages()[ , "Package"])]
+# # install new packages
+# if(length(new.packages)) install.packages(new.packages, type = "source")
+# # load the packages
+# lapply(list.packages, require, character.only = TRUE)
+# # remove lists
+# rm(list.packages, new.packages)
 
 ##### function -- poverty rate #####
 poverty_rate <- function(df, weight, 
                          n.all = "a8", sex = "a7", aged = "a19", 
                          type = "a18", n.adult = "a12", year) {
         
-        ##### weight by age #####
-        n_all <- df[[n.all]] 
-        n_adult <- df[[n.adult]] 
-        
         ##### equivalised income #####
         n <- df[[n.all]]
         df <- df %>% 
                 mutate(sqrt_scale = sqrt(n),
                        eq_inc = (itm400 - itm600) / sqrt_scale)
+        
+        ##### check if the weight is numeric #####
+        if(!is.numeric(df[[weight]])) {
+                df[[weight]] <- as.numeric(df[[weight]])
+                }
         
         ##### poverty threshold #####
         # weight table

@@ -1,6 +1,7 @@
 rm(list = ls())
 setwd("d:/R_wd/tw_inc/")
 library(tidyverse)
+library(parallel)
 load("R data files/df_inc107.RData")
 
 df <- df.inc107 %>% 

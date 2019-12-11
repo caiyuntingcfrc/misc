@@ -1,27 +1,14 @@
 ##### author: CAI YUN-TING ######
 ##### prep and options #####
-# list of packages
-list.packages <- c("tidyverse", "magrittr")
-# check if the packages are installed
-new.packages <- list.packages[!(list.packages %in% installed.packages()[ , "Package"])]
-# install new packages
-if(length(new.packages)) install.packages(new.packages)
-# load the packages
-lapply(list.packages, require, character.only = TRUE)
-# remove lists
-rm(list.packages, new.packages)
 # options
-options(scipen = 999)
+devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
+ins.pack("tidyverse")
 
 ##### function -- poverty rate #####
 poverty_rate <- function(df, weight, 
                          n.all = "a8", sex = "a7", aged = "a19", 
                          type = "a18", n.adult = "a12") {
-        
-        ##### weight by age #####
-        n_all <- df[[n.all]] 
-        n_adult <- df[[n.adult]] 
-        
+
         ##### equivalised income #####
         n <- df[[n.all]]
         df <- df %>% 
@@ -29,11 +16,20 @@ poverty_rate <- function(df, weight,
                        inc = itm400 - itm600, 
                        eq_inc = (itm400 - itm600) / sqrt_scale)
         
+        ##### check if the weight is numeric #####
+        if(!is.numeric(df[[weight]])) {
+                df[[weight]] <- as.numeric(df[[weight]])
+        }
+        
         ##### poverty threshold #####
-        w <- df[[weight]]
-        i <- df[["eq_inc"]]
+        # weight table
+        wtab <- round(xtabs(df[[weight]] ~ df[["eq_inc"]]))
         # replicate income by weight
-        weighed <- i[rep(1:length(i), times = w)]
+        i <- names(wtab)
+        weighed <- mapply(rep, x = i, times = wtab)
+        weighed <- as.numeric(unlist(weighed, use.names = TRUE))
+        # replicate income by weight
+        # weighed <- i[rep(1:length(i), times = w)]
         # calculate the median and poverty threshold
         t <- median(weighed, na.rm = TRUE) * 0.5
         
@@ -42,11 +38,13 @@ poverty_rate <- function(df, weight,
                            w = weight, 
                            inc = "eq_inc", 
                            threshold = t) {
-                # weight
-                w <- data[[w]]
-                i <- data[[inc]]
+                # weight table
+                wtab <- round(xtabs(data[[w]] ~ data[[inc]]))
                 # replicate income by weight
-                weighed <- i[rep(1:length(i), times = w)]
+                i <- names(wtab)
+                weighed <- mapply(rep, x = i, times = wtab)
+                weighed <- as.numeric(unlist(weighed, use.names = TRUE))
+                # weighed <- i[rep(1:length(i), times = w)]
                 r <- weighed < threshold
                 p <- length(r[r == TRUE]) / length(r) * 100
                 return(p)

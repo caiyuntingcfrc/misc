@@ -3,13 +3,12 @@ source("~/Github_CFRC/misc/func_PovertyRate.R")
 setwd("D:/R_wd/tw_inc/")
 
 # load Rdata --------------------------------------------------------------
-
+# list of files
 l <- list.files("R data files/", pattern = "^df_")
 path_list <- paste(getwd(), "/R data files/", l, sep = "")
-lapply(path_list, load, .GlobalEnv)
+lapply(path_list, load, envir = .GlobalEnv)
 
 # poverty rates -----------------------------------------------------------
-
 p2000 <- poverty_rate(df = df.inc89, weight = "a21", year = 2000) %>% 
         round(digits = 2)
 p2001 <- poverty_rate(df = df.inc90, weight = "a20", year = 2001) %>% 
@@ -59,7 +58,7 @@ p_all <- do.call(cbind, data.list) %>%
         rownames_to_column() %>% 
         rename(type = rowname)
 poverty.rate.tw <- p_all
-save(poverty.rate.tw, file = "R data files/poverty rates/poverty.rate.tw.RData")
-saveRDS(poverty.rate.tw, file = "R data files/poverty rates/poverty.rate.tw.rds")
+save(poverty.rate.tw, file = "R data files/poverty.rate.tw.RData")
+saveRDS(poverty.rate.tw, file = "R data files/poverty.rate.tw.rds")
 # write_sas(data = poverty.rate.tw, path = "R data files/poverty.sas7bdat")
-write_excel_csv(poverty.rate.tw, path = "R data files/poverty.rate.tw.csv")
+# write_excel_csv(poverty.rate.tw, path = "R data files/poverty.rate.tw.csv")

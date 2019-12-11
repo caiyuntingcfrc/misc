@@ -1,20 +1,10 @@
 ##### proportion of household with children in diffrent structures of families #####
 
-
 # prep and options --------------------------------------------------------
-# list of packages
-list.packages <- c("tidyverse")
-# check if the packages are installed
-new.packages <- list.packages[!(list.packages %in% installed.packages()[ , "Package"])]
-# install new packages
-if(length(new.packages)) install.packages(new.packages)
-# load the packages
-lapply(list.packages, require, character.only = TRUE)
-# remove lists
-rm(list.packages, new.packages)
 # options
 options(scipen = 999)
-
+devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
+ins.pack("tidyverse")
 
 # funtion--proportion -----------------------------------------------------
 
@@ -43,10 +33,16 @@ prop.f <- function(df, weight, age) {
 
         # weigh
         w <- h[[weight]]
+        # check if numeric
+        if(!is.numeric(w)) { w <- as.numeric(w) }
         c <- h[["with_children"]]
         # replicate by weight
-        w1 <- c[rep(1:length(c), times = w)]
-        out <- c(h$year[1] + 1911L, summarytools::freq(w1)[[6]])
+        wtab <- xtabs(w ~ c)
+        i <- names(wtab)
+        weighed <- mapply(rep, x = i, times = wtab, SIMPLIFY = TRUE)
+        weighed <- as.numeric(unlist(weighed, use.names = TRUE))
+        # w1 <- c[rep(1:length(c), times = w)]
+        out <- c(h$year[1] + 1911L, summarytools::freq(weighed)[[6]])
         return(out)
         rm(h)
         gc()
