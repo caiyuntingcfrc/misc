@@ -45,7 +45,7 @@ p2016 <- poverty_rate(df = df.inc105, weight = "a20", year = 2016) %>%
         round(digits = 2)
 p2017 <- poverty_rate(df = df.inc106, weight = "a20", year = 2017) %>% 
         round(digits = 2)
-p2018 <- poverty_rate(df = df.inc107, weight = "a20", year = 2018) %>% 
+p2018 <- poverty_rate(df = df.inc107, weight = "a20") %>% 
         round(digits = 2)
 
 

@@ -4,7 +4,7 @@
 
 # prep and options --------------------------------------------------------
 # set working directory
-setwd("~/R_wd/tw_inc/")
+setwd("D:/R_wd/tw_inc/")
 # loading packages
 # expss must be loaded after haven
 list.packages <- c("tidyverse", "docxtractr", "readtext", 
@@ -304,11 +304,14 @@ rm(df.source, x, df.itm.all,
 # free up memory
 gc()
 
+##### time ######
+proc.time() - ptm
+
 
 # save --------------------------------------------------------------------
 # .RData
 # save df.inc
-save(df.inc107, file = "AA170043/df_inc107.RData")
+save(df.inc107, file = "c:/Users/user/Desktop/df_inc107.RData")
 save(df.inc107, file = "R data files/df_inc107.RData")
 # save code_tbl
 save(code_tbl_107, file = "AA170043/code_tbl_107.RData")
