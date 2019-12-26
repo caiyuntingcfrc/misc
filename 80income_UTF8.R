@@ -1,5 +1,5 @@
 ##### author: CAI YUN-TING ######
-##### The Survey of Family Income and Expenditure, 1993 #####
+##### The Survey of Family Income and Expenditure, 1991 #####
 
 ##### prep and options #####
 # rm
@@ -21,12 +21,12 @@ timestamp <- format(Sys.time(), "%m%d-%H%M")
 ptm <- proc.time()
 
 # data source
-path_code <- "AA170018/code82.docx"
-path_dat <- "AA170018/inc82.dat"
-year <- 82
+path_code <- "AA170016/code80.docx"
+path_dat <- "AA170016/inc80.dat"
+year <- 80
 
 # spss file for ref
-# d.spss <- read_sav("AA170018/inc82.sav")
+d.spss <- read_sav("AA170016/inc80.sav")
 
 ##### create the codebook ######
 # codebook
@@ -235,6 +235,7 @@ gc()
 x <- filter(df.source, card_num %in% 23:99) %>% .[ ,1] %>% .$raw
 y <- tempfile("tmp", fileext = ".dat")
 write(x, file = y)
+
 x <- vector("list", 5L)
 # for loop (5 sections)
 # item 101 = "1010" (9, 12) , take posistion (9, 11)
@@ -268,7 +269,7 @@ for(i in 1:10) {
         }
 
 # spread (transpose)
-df23 <- df23 %>% spread(key = "item", value = "exp")
+df23 <- df23 %>% distinct() %>% spread(key = "item", value = "exp")
 # remove column `000`
 df23 <- df23 %>% select( - one_of("000"))
 
@@ -303,8 +304,8 @@ df.inc <- Reduce(function(...) left_join(..., by = "x1"), data.list)
 # add year column
 df.inc$year <- year
 #
-df.inc82 <- df.inc
-code_tbl_82 <- code_tbl
+df.inc80 <- df.inc
+code_tbl_80 <- code_tbl
 # remove
 rm(df.source, x, df.itm.all, 
    df1, df2, df21, df22, df23, 
@@ -315,17 +316,17 @@ gc()
 ##### save ###### 
 # .RData
 # save df.inc (RData)
-save(df.inc82, file = "AA170018/df_inc82.RData")
-save(df.inc82, file = "R data files/df_inc82.RData")
+save(df.inc80, file = "AA170016/df_inc80.RData")
+save(df.inc80, file = "R data files/df_inc80.RData")
 # save df.inc (rds)
-saveRDS(df.inc82, file = "AA170018/df_inc82.rds")
-saveRDS(df.inc82, file = "R data files/df_inc82.rds")
+saveRDS(df.inc80, file = "AA170016/df_inc80.rds")
+saveRDS(df.inc80, file = "R data files/df_inc80.rds")
 # save code_tbl
-save(code_tbl_82, file = "AA170018/code_tbl_82.RData")
-save(code_tbl_82, file = "R data files/code_tbl_82.RData")
+save(code_tbl_80, file = "AA170016/code_tbl_80.RData")
+save(code_tbl_80, file = "R data files/code_tbl_80.RData")
 # save code_tbl (rds)
-saveRDS(code_tbl_82, file = "AA170018/code_tbl_82.rds")
-saveRDS(code_tbl_82, file = "R data files/code_tbl_82.rds")
+saveRDS(code_tbl_80, file = "AA170016/code_tbl_80.rds")
+saveRDS(code_tbl_80, file = "R data files/code_tbl_80.rds")
 
 ##### time ######
 proc.time() - ptm

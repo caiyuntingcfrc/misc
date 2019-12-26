@@ -1,5 +1,5 @@
 ##### author: CAI YUN-TING ######
-##### The Survey of Family Income and Expenditure, 1993 #####
+##### The Survey of Family Income and Expenditure, 1992 #####
 
 ##### prep and options #####
 # rm
@@ -21,12 +21,12 @@ timestamp <- format(Sys.time(), "%m%d-%H%M")
 ptm <- proc.time()
 
 # data source
-path_code <- "AA170018/code82.docx"
-path_dat <- "AA170018/inc82.dat"
-year <- 82
+path_code <- "AA170017/code81.docx"
+path_dat <- "AA170017/inc81.dat"
+year <- 81
 
 # spss file for ref
-# d.spss <- read_sav("AA170018/inc82.sav")
+# d.spss <- read_sav("AA170017/inc81.sav")
 
 ##### create the codebook ######
 # codebook
@@ -303,8 +303,8 @@ df.inc <- Reduce(function(...) left_join(..., by = "x1"), data.list)
 # add year column
 df.inc$year <- year
 #
-df.inc82 <- df.inc
-code_tbl_82 <- code_tbl
+df.inc81 <- df.inc
+code_tbl_81 <- code_tbl
 # remove
 rm(df.source, x, df.itm.all, 
    df1, df2, df21, df22, df23, 
@@ -315,17 +315,17 @@ gc()
 ##### save ###### 
 # .RData
 # save df.inc (RData)
-save(df.inc82, file = "AA170018/df_inc82.RData")
-save(df.inc82, file = "R data files/df_inc82.RData")
+save(df.inc81, file = "AA170017/df_inc81.RData")
+save(df.inc81, file = "R data files/df_inc81.RData")
 # save df.inc (rds)
-saveRDS(df.inc82, file = "AA170018/df_inc82.rds")
-saveRDS(df.inc82, file = "R data files/df_inc82.rds")
+saveRDS(df.inc81, file = "AA170017/df_inc81.rds")
+saveRDS(df.inc81, file = "R data files/df_inc81.rds")
 # save code_tbl
-save(code_tbl_82, file = "AA170018/code_tbl_82.RData")
-save(code_tbl_82, file = "R data files/code_tbl_82.RData")
+save(code_tbl_81, file = "AA170017/code_tbl_81.RData")
+save(code_tbl_81, file = "R data files/code_tbl_81.RData")
 # save code_tbl (rds)
-saveRDS(code_tbl_82, file = "AA170018/code_tbl_82.rds")
-saveRDS(code_tbl_82, file = "R data files/code_tbl_82.rds")
+saveRDS(code_tbl_81, file = "AA170017/code_tbl_81.rds")
+saveRDS(code_tbl_81, file = "R data files/code_tbl_81.rds")
 
 ##### time ######
 proc.time() - ptm
