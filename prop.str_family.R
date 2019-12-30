@@ -1,3 +1,5 @@
+
+# prep --------------------------------------------------------------------
 rm(list = ls())
 setwd("d:/R_wd/tw_inc/R data files/")
 source("d:/R_wd/R studies/R scripts/func_ins.pack.R")
@@ -61,63 +63,130 @@ df$`n.elder` <- n.elder
 
 # head's var number and sex -----------------------------------------------
 
-
 l <- grep("^b1_", names(df), value = TRUE)
 df$`h.sex` <- NULL
 df$`h.num` <- NULL
 h.sex <- vector("numeric", nrow(df))
 h.num <- vector("numeric", nrow(df))
+h.marital <- vector("numeric", nrow(df))
 for(i in 1:nrow(df)) {
         n <- names(df[i, l][ , which(df[i, l] == df$itm101[i])]) %>%
                 str_split(., "_", simplify = TRUE)
         n <- as.numeric(n[ , 2])
         s <- paste("b3_", n, sep = "")
+        m <- paste("b16_", n, sep = "")
         f <- df[[s]][i]
         h.num[i] <- n
         h.sex[i] <- f
+        h.marital[i] <- df[[m]][i]
         # h_sex[i] <- df[[s]][i] %>% 
         #         as.character() %>% 
         #         as.numeric()
         }
 df$`h.num` <- h.num
 df$`h.sex` <- h.sex
+df$`h.marital` <- h.marital
 
-# gen ---------------------------------------------------------------------
-# having grand children: g1
-gen <- vector("numeric", nrow(df))
-df$`gen` <- NULL
-l <- grep("^b2_", names(df))
-for(i in 1:nrow(df)) {
-        if(sum(df[i, l] %in% c(6), na.rm = TRUE) > 0) {
-                gen[i] <- 3
-                } else if (sum(df[i, l] %in% c(4), na.rm = TRUE) > 0) {
-                        gen[i] <- 1
-                        }
+# # head's ID and marital status --------------------------------------------
+# df$`h.marital` <- NULL
+# h.id <- vector("numeric", nrow(df))
+# h.marital <- vector("numeric", nrow(df))
+# l <- grep("^b2_", names(df))
+# for(i in 1:nrow(df)) { 
+#         # search for head
+#         n <- names(df[i, l][ , which(df[i, l] == 1)]) %>% 
+#                 str_split(., "_", simplify = TRUE)
+#         # heawd's marital status
+#         m <- paste("b16_", n[ , 2], sep = "")
+#         id <- paste("b1_", n[ , 2], sep = "")
+#         h.id[i] <- df[[id]][i]
+#         h.marital[i] <- df[[m]][i]
+#         }
+# df$`h.id` <- h.id
+# df$`h.marital` <- h.marital
+# table(h.marital)
+# table(h.id)
+# 
+
+# head's parents and grand parents' marital status ------------------------
+
+# head's parents's variable name of marital status
+df$`p.marital` <- NULL
+p.marital <- vector("numeric", nrow(df))
+l <- grep("^b2", names(df))
+for(i in 1:nrow(df)) { 
+        # search for head (identity: parents)
+        n <- names(df[i, l][ , which(df[i, l] == 5)])
+        # head had only one of the parents
+        if( length(n) == 1 ) { 
+                n <- str_split(n, "_", simplify = TRUE)
+                n <- paste("b16_", n[ , 2], sep = "")
+                p.marital[i] <- df[[n]][i]
+                } else { p.marital[i] <- NA }
         }
-table(gen)
-l1 <- grep("^b2_", names(df))
+df$`p.marital` <- p.marital
+table(p.marital, useNA = "ifany")
+
+# head's grandparents
+df$`g.marital` <- NULL
+g.marital <- vector("numeric", nrow(df))
+l <- grep("^b2", names(df))
+for(i in 1:nrow(df)) { 
+        # search for head (identity: grandparents)
+        n <- names(df[i, l][ , which(df[i, l] == 6)])
+        # head had only one of the grandparents
+        if( length(n) == 1 ) { 
+                n <- str_split(n, "_", simplify = TRUE)
+                n <- paste("b16_", n[ , 2], sep = "")
+                g.marital[i] <- df[[n]][i]
+                } else { g.marital[i] <- NA }
+        }
+df$`g.marital` <- g.marital
+table(g.marital, useNA = "ifany")
+
+# if they are overlapping
+# stem family and both the parent and the grandparent are single, widow or widower
+test <- df %>% filter(!is.na(p.marital) & !is.na(g.marital))
+
+# test: single parent family ----------------------------------------------
+# the head is 3rd gen
+l <- grep("^b2_", names(df))
 l2 <- grep("^b16_", names(df))
-a <- df[3, l1] %>% as.integer()
-b <- df[157, l2] %>% as.integer()
-table(a)
+sf <- vector("character", nrow(df))
+for( i in 1:nrow(df)) {
+        # only one of the parents
+        if(length(grep("^[5]$", df[i, l])) == 1 &
+           # only one of the parents, the head, and siblings
+           length(grep("^[1]$|^[5]$|^[7]$", df[i, l])) == n.all[i] & 
+           # only unmarried, divorced, or widowed
+           length(grep("^[9][1]$|^[9][7]$", df[i, l2])) == n.all[i] &
+           # only the parent is divorced or widowed
+           sum(df[i, l2] %in% c(97)) == 1 & 
+           # the head is unmarried
+           h.marital[i] == 91 &
+           # the head is male
+           h.sex[i] == 1 ) {
+                
+                sf[i] <- "331"
+                
+                } else if (length(grep("^[5]$", df[i, l])) == 1 &
+                           length(grep("^[1]$|^[5]$|^[7]$", df[i, l])) == n.all[i] & 
+                           length(grep("^[9][1]$|^[9][7]$", df[i ,l2])) == n.all[i] &
+                           sum(df[i, l2] %in% c(97)) == 1 & 
+                           h.marital[i] == 91 &
+                           h.sex[i] == 2) { 
+                                
+                                sf[i] <- "332" 
+                                
+                                }
+        }
+df$`sf` <- sf
 
-test <- inc107 %>% slice(3)
-test$a18
-t <- test %>% select(matches("^b2_|a18"))
-# filter test single-parent -----------------------------------------------
-
-# l1 <- grep("^b2_", names(df))
-# l2 <- grep("^b16_", names(df))
-# d1 <- df[ , l1]
-# d2 <- df[ , l2]
-# c1 <- d1 == 1 | d1==3 | d1 == 5 | d1 == 7
-# c2 <- d2 == 91 | d2 == 97
-# cc <- c1 & c2
-# tc <- apply(cc, 1, all, na.rm = TRUE)
-# dtest <- df[tc, ]
-# test <- df %>% 
-#         .[unique(which(c, arr.ind = TRUE)[ , 1]), ] 
-#         .[which(df[ , l2] == "91" | df[ , l] == "97"), ]
+d.single <- df %>% filter(sf %in% c(331, 332)) %>% 
+        select(matches("^x1|^b2_|^b16_|a18|sf"))
+d.single2 <- inc107 %>% filter(a18 %in% c(331, 332)) %>% 
+        select(matches("^x1|^b2_|^b16_|a18"))
+diff <- d.single[!(d.single$x1 %in% d.single2$x1), ]
 
 # SF-single-person --------------------------------------------------------
 
@@ -133,56 +202,9 @@ d %<>% mutate(sf = case_when(# single-person
                              n.all == 2 & 
                                      n.adults == 2 & 
                                      b2_1 %in% c(1, 2) & b2_2 %in% c(1, 2) &
-                                     h.sex == 2 ~ "202", 
+                                     h.sex == 2 ~ "202"
                              
-                             TRUE ~ NA_character_))
-# singel-parent
-l1 <- grep("^b2_", names(d))
-l2 <- grep("^b16_", names(d))
-t <- vector("character", nrow(d))
-df$t <- t
-for(i in 1:nrow(d)) {
-        if(!(d$sf[i] %in% c("101", "102", "201", "202")) &
-           length(grep("^1$|^3$", df[i, l1])) == df$n.all[i] &
-           length(grep("^[9][1]|^[9][7]", df[i, l2])) == df$n.all[i]) {
-                df$t[i] <- "T"
-                }
-        }
-table(df$t)
-table(df$a18)
-test0 <- df %>% filter(t == "T") %>% select(-t)
-table(test0$a18)
-test1 <- df %>% 
-        filter(a18 %in% c(531, 532, 431 ,432, 631, 632))
-tt <- test0[!(test0$x1 %in% test$x1), ]
-# test --------------------------------------------------------------------
-
-# one-person male headed
-d1 <- df %>% filter(h_sex == 1 & n.all == 1)
-d2 <- inc107 %>% filter(a18 == 101)
-table(d1$a18 == d2$a18)
-# one-person female headed
-d1 <- df %>% filter(h_sex == 2 & n.all == 1)
-d2 <- inc107 %>% filter(a18 == 102)
-table(d1$a18 == d2$a18)
-
-# married-couple
-# male headed
-d1 <- df %>% filter(h_sex == 1 & n.all == 2)
-d2 <- inc107 %>% filter(a18 %in% c(201, 202))
-test <- d1 %>% slice(1)
-l1 <- grep("^b1_", names(df))
-l16 <- grep("^b16_", names(df))
-a <- test[ ,l1]
-b <- test[ ,l16]
-a * b
-which(a * b)
-with(test, b1_1 * b16_1 == b1_2 * b16_2)
-with(test, b1_2 * b16_2)
-test$b1_1
-test$b1_2
-test$b16_1
-test$b16_2
+                             ))
 
 # recode ------------------------------------------------------------------
 for(i in 1:9) {
