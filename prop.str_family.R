@@ -2,7 +2,7 @@
 # prep --------------------------------------------------------------------
 
 rm(list = ls())
-setwd("~/R_wd/tw_inc/R data files/")
+setwd("D:/R_wd/tw_inc/R data files/")
 # soure func: ins.pack
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 ins.pack("feather", "tidyverse", "magrittr")
@@ -15,12 +15,12 @@ ins.pack("feather", "tidyverse", "magrittr")
 # read feather
 # l <- vector("list", length(file_path))
 # l <- lapply(file_path, read_feather)
-inc107 <- read_feather("df_inc107.feather")
+inc105 <- read_feather("df_inc105.feather")
 
 
-# Recode:inc107 -----------------------------------------------------------
+# Recode:inc105 -----------------------------------------------------------
 
-df <- inc107
+df <- inc105
 
 # factor to numeric (bxx_)
 l <- grep("^b|itm101$", names(df), value = TRUE)
@@ -220,24 +220,35 @@ df$`g.marital2` <- g.marital2
 
 # recode: single person and married couple --------------------------------
 
-df %<>% mutate(sf = case_when(# single-person
+df %<>% mutate(sf = case_when(
+        # single-person
         n.all == 1 & h.sex == 1 ~ "101", 
         n.all == 1 & h.sex == 2 ~ "102", 
+        
         # married-couple
         n.all == 2 & 
-                n.adults == 2 & 
-                b2_1 %in% c(1, 2) & b2_2 %in% c(1, 2) &
+                # n.adults == 2 & 
+                # couple
+                b2_1 %in% c(1, 2) & 
+                b2_2 %in% c(1, 2) &
+                # 
+                b16_1 %in% c(1, 2, 31, 51, 91:93, 97) & 
+                b16_2 %in% c(1, 2, 31, 51, 91:93, 97) &
                 h.sex == 1 ~ "201", 
         n.all == 2 & 
-                n.adults == 2 & 
-                b2_1 %in% c(1, 2) & b2_2 %in% c(1, 2) &
+                # n.adults == 2 & 
+                b2_1 %in% c(1, 2) & 
+                b2_2 %in% c(1, 2) & 
+                # 
+                b16_1 %in% c(1, 2, 31, 51, 91:93, 97) & 
+                b16_2 %in% c(1, 2, 31, 51, 91:93, 97) &
                 h.sex == 2 ~ "202"
                 )
         )
 
 # diff 1xx
 d1 <- df %>% filter(sf %in% c(101, 102)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(101, 102)) %>% select(x1)
+d2 <- inc105 %>% filter(a18 %in% c(101, 102)) %>% select(x1)
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -247,8 +258,8 @@ if(diff1 == 0 & diff2 == 0) {
                 cat("1xx\n", file = check, append = TRUE)
                 }    
 # diff 2xx
-d1 <- df %>% filter(sf %in% c(201, 202)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(201, 202)) %>% select(x1)
+d1 <- df %>% filter(sf %in% c(201, 202)) %>% select(matches("^x1"))
+d2 <- inc105 %>% filter(a18 %in% c(201, 202)) %>% select(matches("^x1"))
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -264,15 +275,13 @@ l <- grep("^b2_", names(df))
 l2 <- grep("^b16_", names(df))
 for( i in 1:nrow(df)) {
         # only one of the parents
-        if( length(grep("^[1]$", df[i, l])) == 1 &
+        if( 
             # at least two in the household
             df$n.all[i] >= 2 &
-            # only one of the head and the head's children
-            length(grep("^[1]$|^[3]$", df[i, l])) == n.all[i] & 
-            # only unmarried, divorced, or widowed
-            length(grep("^[9][1]$|^[9][7]$", df[i, l2])) == n.all[i] &
-            # only the parent is divorced or widowed
-            sum(df[i, l2] %in% 97, na.rm = TRUE) == 1 & 
+            # only the head and the head's children
+            sum(df[i, l] %in% c(1, 3), na.rm = TRUE) == df$n.all[i] &
+            # all of the children is unmarried
+            sum(df[i, l2][which(df[i, l] == 3)] == 91, na.rm = TRUE) == df$n.all[i] - 1 &
             # the head is divorced or widowed
             df$h.marital[i] == 97 &
             # the head is male
@@ -280,12 +289,12 @@ for( i in 1:nrow(df)) {
                 
                 df$sf[i] <- "321"
                 
-                } else if ( length(grep("^[1]$", df[i, l])) == 1 &
+                } else if ( 
                             df$n.all[i] >= 2 &
-                            length(grep("^[1]$|^[3]$", df[i, l])) == n.all[i] & 
-                            length(grep("^[9][1]$|^[9][7]$", df[i ,l2])) == n.all[i] &
-                            sum(df[i, l2] %in% 97, na.rm = TRUE) == 1 & 
+                            sum(df[i, l] %in% c(1, 3), na.rm = TRUE) == df$n.all[i] &
+                            sum(df[i, l2][which(df[i, l] == 3)] == 91, na.rm = TRUE) == df$n.all[i] - 1&
                             df$h.marital[i] == 97 &
+                            # the head is female
                             df$h.sex[i] == 2 ) { 
                         
                                 df$sf[i] <- "322" 
@@ -294,9 +303,9 @@ for( i in 1:nrow(df)) {
         }
 # diff
 d1 <- df %>% filter(sf %in% c(321, 322)) %>% 
-        select(x1) 
-d2 <- inc107 %>% filter(a18 %in% c(321, 322)) %>%
-        select(x1)
+        select(matches("^x1|a18|^b2_|^b16_")) 
+d2 <- inc105 %>% filter(a18 %in% c(321, 322)) %>%
+        select(matches("^x1|a18|^b2_|^b16_")) 
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -340,7 +349,7 @@ for( i in 1:nrow(df)) {
 
 # diff
 d1 <- df %>% filter(sf %in% c(331, 332)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(331, 332)) %>% select(x1)
+d2 <- inc105 %>% filter(a18 %in% c(331, 332)) %>% select(x1)
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -387,7 +396,7 @@ for( i in 1:nrow(df)) {
 
 # diff
 d1 <- df %>% filter(sf %in% c(421, 422)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(421, 422)) %>% select(x1)
+d2 <- inc105 %>% filter(a18 %in% c(421, 422)) %>% select(x1)
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -432,7 +441,7 @@ for( i in 1:nrow(df)) {
 
 # diff
 d1 <- df %>% filter(sf %in% c(431, 432)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(431, 432)) %>% select(x1)
+d2 <- inc105 %>% filter(a18 %in% c(431, 432)) %>% select(x1)
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -441,35 +450,41 @@ if(diff1 == 0 & diff2 == 0) {
         } else {
                 cat("43x\n", file = check, append = TRUE)
                 }   
-# recode: grand-parent families -------------------------------------------
+# recode: grand-parent familie --------------------------------------------
 
 # the head is the 1st gen
 l <- grep("^b2_", names(df))
 l2 <- grep("^b16_", names(df))
-sf <- vector("character", nrow(df))
 for( i in 1:nrow(df)) {
-        if( length(grep("^[3]$", df[i, l])) == 0 &
-            length(grep("^[4]$", df[i, l])) >= 1 &
-            length(grep("^[1-2]$|^[4]$|^[7-9]$|^[1][1-2]$", df[i, l])) == df$n.all[i] &
-            # !(df$sf[i] %in% c(101, 102, 201, 202, 321, 322, 331, 332, 421, 422, 431, 432)) &
+        # none of the 2nd gen
+        if( # length(grep("^[3]$", df[i, l])) == 0 &
+            sum(df[i, l] == 3, na.rm = TRUE) == 0 &
+            # at least one grand child
+            sum(df[i, l] == 4, na.rm = TRUE) >= 1 &
+            # at least one grand child is unmarried
+            sum(df[i, l2][which(df[i, l] == 4)] == 91, na.rm = TRUE) >= 1 &
+            # length(grep("^[1-2]$|^[4-5]$|^[7-9]$|^[1][1-4]$", df[i, l])) == df$n.all[i] &
+            # the head is not single
             !(df$h.marital[i] == 91) &
+            # the head is male
             df$h.sex[i] == 1) {
                                 
                                 df$sf[i] <- "511" 
                 
-                                } else if (length(grep("^[3]$", df[i, l])) == 0 &
-                                           length(grep("^[4]$", df[i, l])) >= 1 &
-                                           length(grep("^[1-2]$|^[4]$|^[7-9]$|^[1][1-2]$", df[i, l])) == df$n.all[i] &
-                                           # !(df$sf[i] %in% c(101, 102, 201, 202, 321, 322, 331, 332, 421, 422, 431, 432)) &
+                                } else if (sum(df[i, l] == 3, na.rm = TRUE) == 0 &
+                                           sum(df[i, l] == 4, na.rm = TRUE) >= 1 &
+                                           sum(df[i, l2][which(df[i, l] == 4)] == 91, na.rm = TRUE) >= 1 &
+                                           # length(grep("^[1-2]$|^[4-5]$|^[7-9]$|^[1][1-4]$", df[i, l])) == df$n.all[i] &
                                            !(df$h.marital[i] == 91) &
+                                           # the head is female
                                            df$h.sex[i] == 2) {
                                         
                                                 df$sf[i] <- "512"        
                                         
                                                 }
         }
-d1 <- df %>% filter(sf %in% c(511, 512)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(511, 512)) %>% select(x1)
+d1 <- df %>% filter(sf %in% c(511, 512)) %>% select(matches("^x1"))
+d2 <- inc105 %>% filter(a18 %in% c(511, 512)) %>% select(matches("^x1"))
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -480,7 +495,196 @@ if(diff1 == 0 & diff2 == 0) {
         } 
 
 # the head is the 3rd gen
+l <- grep("^b2_", names(df))
+l2 <- grep("^b16_", names(df))
+for( i in 1:nrow(df)) {
+        # none of the 2nd gen
+        if( sum(df[i, l] == 5, na.rm = TRUE) == 0 &
+            # at least one grand parent
+            sum(df[i, l] == 6, na.rm = TRUE) >= 1 &
+            # at least the head or one of the head's siblings is single
+            sum(df[i, l2][which(df[i, l] %in% c(1, 7))] == 91, na.rm = TRUE) >= 1 &
+            # length(grep("^[9][1]$", df[i, l2])) >= 1 &
+            # all but not the 2nd gen
+            # sum(!(df[i, l] == 5), na.rm = TRUE) == df$n.all[i] &
+            # the head is single
+            df$h.marital[i] == 91 &
+            # the head is male
+            df$h.sex[i] == 1) {
+                
+                df$sf[i] <- "531" 
+                
+                } else if (sum(df[i, l] == 5, na.rm = TRUE) == 0 &
+                           # at least one grand parent
+                           sum(df[i, l] == 6, na.rm = TRUE) >= 1 &
+                           # at least the head or one of the head's siblings is single
+                           sum(df[i, l2][which(df[i, l] %in% c(1, 7))] == 91, na.rm = TRUE) >= 1 &
+                           # all but not the 2nd gen
+                           # sum(!(df[i, l] == 5), na.rm = TRUE) == df$n.all[i]&
+                           df$h.marital[i] == 91 &
+                           # the head is female
+                           df$h.sex[i] == 2) {
+                
+                                df$sf[i] <- "532"        
+                                
+                        }
+        }
 
+d1 <- df %>% filter(sf %in% c(531, 532)) %>% select(x1)
+d2 <- inc105 %>% filter(a18 %in% c(531, 532)) %>% select(x1)
+diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
+diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
+# check
+if(diff1 == 0 & diff2 == 0) { 
+        cat("1\n", file = check, append = TRUE) 
+        } else {
+        cat("53x\n", file = check, append = TRUE)
+} 
+
+# recode: stem familie ----------------------------------------------------
+
+# the head is the 1st gen
+l <- grep("^b2_", names(df))
+l2 <- grep("^b16_", names(df))
+
+for(i in 1:nrow(df)) {
+        # sf is NA
+        if( is.na(df[i, "sf"]) & 
+            # one of the grand children is single
+            sum(df[i, l2][which(df[i, l] == 4)] == 91, na.rm = TRUE) >= 1 &
+            # the head has at least one child
+            sum(df[i, l] == 3, na.rm = TRUE) >= 1&
+            df$h.sex[i] == 1) {
+                
+                df$sf[i] <- "611"
+                
+                } else if( is.na(df[i, "sf"]) & 
+                           # one of the grand children is single
+                           sum(df[i, l2][which(df[i, l] == 4)] == 91, na.rm = TRUE) >= 1 &
+                           sum(df[i, l] == 3, na.rm = TRUE) >= 1&
+                           df$h.sex[i] == 2) {
+                                
+                                df$sf[i] <- "612"
+                                
+                                }
+        }
+# diff 
+d1 <- df %>% filter(sf %in% c(611, 612)) %>% select(x1)
+d2 <- inc105 %>% filter(a18 %in% c(611, 612)) %>% select(x1)
+diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
+diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
+# check
+if(diff1 == 0 & diff2 == 0) { 
+        cat("1\n", file = check, append = TRUE) 
+        } else {
+        cat("61x\n", file = check, append = TRUE)
+        }
+
+# the head is the 2nd gen
+l <- grep("^b2_", names(df))
+l2 <- grep("^b16_", names(df))
+for(i in 1:nrow(df)) {
+        # sf is NA
+        if( is.na(df[i, "sf"]) & 
+            # one of the children is single
+            sum(df[i, l2][which(df[i, l] == 3)] == 91, na.rm = TRUE) >= 1 &
+            # the head has at least one parent or spouse's parent
+            sum(df[i, l] %in% c(5, 11), na.rm = TRUE) >= 1 &
+            # the head is not single
+            !(df$h.marital[i] %in% c(91)) &
+            # the head is male
+            df$h.sex[i] == 1) {
+                
+                df$sf[i] <- "621"
+                
+                } else if( is.na(df[i, "sf"]) & 
+                           # one of the grand children is single
+                   sum(df[i, l2][which(df[i, l] == 3)] == 91, na.rm = TRUE) >= 1 &
+                   sum(df[i, l] %in% c(5, 11), na.rm = TRUE) >= 1 &
+                   !(df$h.marital[i] %in% c(91)) &
+                   # the head is female
+                   df$h.sex[i] == 2) {
+                
+                        df$sf[i] <- "622"
+                        
+                        }
+}
+# diff 
+d1 <- df %>% filter(sf %in% c(621, 622)) %>% select(x1)
+d2 <- inc105 %>% filter(a18 %in% c(621, 622)) %>% select(x1)
+diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
+diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
+# check
+if(diff1 == 0 & diff2 == 0) { 
+        cat("1\n", file = check, append = TRUE) 
+        } else {
+        cat("62x\n", file = check, append = TRUE)
+        }
+
+# the head is the 3rd gen
+l <- grep("^b2_", names(df))
+l2 <- grep("^b16_", names(df))
+for(i in 1:nrow(df)) {
+        # sf is NA
+        if( is.na(df[i, "sf"]) & 
+            # one of the children is single
+            sum(df[i, l2][which(df[i, l] %in% c(1, 7))] == 91, na.rm = TRUE) >= 1 &
+            # the head has at least one parent or spouse's parent
+            sum(df[i, l] %in% c(5, 11), na.rm = TRUE) >= 1 &
+            # the head has at least one grand parent
+            sum(df[i, l] %in% c(6), na.rm = TRUE) >= 1 &
+            # the head is not single
+            !(df$h.marital[i] %in% c(92, 31:39)) &
+            # the head is male
+            df$h.sex[i] == 1) {
+                
+                df$sf[i] <- "631"
+                
+                } else if( is.na(df[i, "sf"]) & 
+                           # one of the children is single
+                           sum(df[i, l2][which(df[i, l] %in% c(1, 7))] == 91, na.rm = TRUE) >= 1 &
+                           # the head has at least one parent or spouse's parent
+                           sum(df[i, l] %in% c(5, 11), na.rm = TRUE) >= 1 &
+                           # the head has at least one grand parent
+                           sum(df[i, l] %in% c(6), na.rm = TRUE) >= 1 &
+                           !(df$h.marital[i] %in% c(92, 31:39)) &
+                           # the head is female
+                           df$h.sex[i] == 2 ) {
+                
+                                df$sf[i] <- "632"
+                
+                                }
+        }
+# diff 
+d1 <- df %>% filter(sf %in% c(631, 632)) %>% select(matches("^x1|a18|^b2_|^b16_"))
+# d1 <- df[sf %in% c(631, 632), grep("^x1|a18|^b2_|^b16_", names(df))]
+d2 <- inc105 %>% filter(a18 %in% c(631, 632)) %>% select(matches("^x1|a18|^b2_|^b16_"))
+diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
+diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
+# check
+if(diff1 == 0 & diff2 == 0) { 
+        cat("1\n", file = check, append = TRUE) 
+        } else {
+        cat("63x\n", file = check, append = TRUE)
+}
+
+# recode: others ----------------------------------------------------------
+
+df %<>% mutate(sf = case_when(!is.na(sf) ~ sf, 
+                              h.sex == 1 ~ "701", 
+                              h.sex == 2 ~ "702"))
+# diff 
+d1 <- df %>% filter(sf %in% c(701, 702)) %>% select(x1)
+d2 <- inc105 %>% filter(a18 %in% c(701, 702)) %>% select(x1)
+diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
+diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
+# check
+if(diff1 == 0 & diff2 == 0) { 
+        cat("1\n", file = check, append = TRUE) 
+        } else {
+        cat("70x\n", file = check, append = TRUE)
+}
+read_lines(check)
 
 # recode: structure of families -------------------------------------------
 
