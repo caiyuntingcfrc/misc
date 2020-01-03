@@ -67,7 +67,7 @@ poverty_rate <- function(df, weight,
         
         ##### household with aged (>=65) #####
         # d <- df[df[[aged]] >= 1, ]
-        d <- df %>% filter_at(aged, all_vars(. >= 1))
+        d <- df %>% filter_at(vars(matches("^b4_")), any_vars(. >= 65))
         p.with_aged <- p.prop(df = d, w = weight)
         names(p.with_aged) <- "Household with aged (>=65)"
         
