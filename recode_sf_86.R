@@ -2,7 +2,7 @@
 # prep --------------------------------------------------------------------
 
 rm(list = ls())
-setwd("D:/R_wd/tw_inc/R data files/")
+setwd("i:/R_wd/tw_inc/R data files/")
 # soure func: ins.pack
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 ins.pack("feather", "tidyverse", "magrittr")
@@ -485,7 +485,6 @@ x <- round(xtabs(w ~ s), digits = 0); x
 n <- names(x)
 weighed <- mapply(rep, x = n, times = x)
 l <- unlist(weighed, use.names = FALSE)
-table(df$b16_1)
 table <- epiDisplay::tab1(l, decimal = 2, 
                           graph = TRUE)
 

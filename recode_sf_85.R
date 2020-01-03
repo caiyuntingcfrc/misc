@@ -485,7 +485,6 @@ x <- round(xtabs(w ~ s), digits = 0); x
 n <- names(x)
 weighed <- mapply(rep, x = n, times = x)
 l <- unlist(weighed, use.names = FALSE)
-table(df$b16_1)
 table <- epiDisplay::tab1(l, decimal = 2, 
                           graph = TRUE)
 

@@ -2,7 +2,7 @@
 # prep --------------------------------------------------------------------
 
 rm(list = ls())
-setwd("D:/R_wd/tw_inc/R data files/")
+setwd("i:/R_wd/tw_inc/R data files/")
 # soure func: ins.pack
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 ins.pack("feather", "tidyverse", "magrittr")
@@ -18,9 +18,11 @@ df <- inc83
 l <- grep("^b|itm101$", names(df), value = TRUE)
 df[ , l] <- lapply(df[ , l], as.character) %>% lapply(., as.numeric)
 
-# numbers of people -------------------------------------------------------
 
+# numbers of people -------------------------------------------------------
+ll <- grep("^b", names(df), value = TRUE)
 l <- grep("^b1_", names(df), value = TRUE)
+df[ , ll] %<>% na_if(., 0)
 df$`n.all` <- NULL
 n.all <- vector("numeric", nrow(df))
 for(i in 1:nrow(df)) { 
@@ -149,6 +151,7 @@ df %<>% mutate(sf = case_when(
 # the head is the 2nd gen
 l <- grep("^b2_", names(df))
 l2 <- grep("^b16_", names(df))
+
 for( i in 1:nrow(df)) {
         # only one of the parents
         if( 
@@ -480,13 +483,11 @@ df %<>% mutate(str_family = case_when(a18 %in% c(101, 102) ~ 1L,
 #                                     "stem" = 6L, 
 #                                     "other" = 7L))
 s <- df$str_family
-s <- df$sf
 w <- df$a21
 x <- round(xtabs(w ~ s), digits = 0); x
 n <- names(x)
 weighed <- mapply(rep, x = n, times = x)
 l <- unlist(weighed, use.names = FALSE)
-table(df$b16_1)
 table <- epiDisplay::tab1(l, decimal = 2, 
                           graph = TRUE)
 
