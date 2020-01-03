@@ -2,7 +2,7 @@
 # prep --------------------------------------------------------------------
 
 rm(list = ls())
-setwd("D:/R_wd/tw_inc/R data files/")
+setwd("i:/R_wd/tw_inc/R data files/")
 # soure func: ins.pack
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 ins.pack("feather", "tidyverse", "magrittr")
@@ -321,11 +321,14 @@ l2 <- grep("^b16_", names(df))
 # sf <- vector("character", nrow(df))
 for( i in 1:nrow(df)) {
         # only one of the parents
-        if(length(grep("^[5]$", df[i, l])) == 1 &
+        if(sum(df[i, l] == 5, na.rm = TRUE) == 1 &
+           # length(grep("^[5]$", df[i, l])) == 1 &
            # only one of the parents, the head, and siblings
-           length(grep("^[1]$|^[5]$|^[7]$", df[i, l])) == n.all[i] & 
+           sum(df[i, l] %in% c(1, 5, 7), na.rm = TRUE) == df$n.all[i] &
+           # length(grep("^[1]$|^[5]$|^[7]$", df[i, l])) == n.all[i] & 
            # only unmarried, divorced, or widowed
-           length(grep("^[9][1]$|^[9][7]$", df[i, l2])) == n.all[i] &
+           sum(df[i, l2] %in% c(91, 97), na.rm = TRUE) == df$n.all[i] &
+           # length(grep("^[9][1]$|^[9][7]$", df[i, l2])) == n.all[i] &
            # only the parent is divorced or widowed
            sum(df[i, l2] %in% 97, na.rm = TRUE) == 1 & 
            # the head is unmarried
@@ -335,9 +338,9 @@ for( i in 1:nrow(df)) {
                 
                 df$sf[i] <- "331"
                 
-                } else if ( length(grep("^[5]$", df[i, l])) == 1 &
-                            length(grep("^[1]$|^[5]$|^[7]$", df[i, l])) == n.all[i] & 
-                            length(grep("^[9][1]$|^[9][7]$", df[i ,l2])) == n.all[i] &
+                } else if ( sum(df[i, l] == 5, na.rm = TRUE) == 1 &
+                            sum(df[i, l] %in% c(1, 5, 7), na.rm = TRUE) == df$n.all[i] &
+                            sum(df[i, l2] %in% c(91, 97), na.rm = TRUE) == df$n.all[i] &
                             sum(df[i, l2] %in% 97, na.rm = TRUE) == 1 & 
                             h.marital[i] == 91 &
                             h.sex[i] == 2) { 
@@ -366,14 +369,12 @@ if(diff1 == 0 & diff2 == 0) {
 l <- grep("^b2_", names(df))
 l2 <- grep("^b16_", names(df))
 for( i in 1:nrow(df)) {
-        if( length(grep("^[1]$", df[i, l])) == 1 &
-            # at least 3 in the household
+        if( # at least 3 in the household
             df$n.all[i] >= 3 &
             # the head and the head's spouse, the head's children and others
-            length(grep("^[1]$|^[2]$|^[3]$|^[6]$|^[7]$|^[8]$|^[1][0]$|^[1][2-4]$", df[i, l])) == n.all[i] & 
+            sum(df[i, l] %in% c(4, 5, 9, 11), na.rm = TRUE) == 0 &
             # at least one of the children is unmarried
-            sum(df[i, l] %in% 3, na.rm = TRUE) >= 1 & 
-            sum(df[i, l2] %in% 91, na.rm = TRUE) >= 1 & 
+            sum(df[i, l2][which(df[i, l] == 3)] == 91, na.rm = TRUE) >= 1 &
             # the head is married
             !(h.marital[i] %in% c(91, 92, 97)) &
             # the head is male
@@ -381,11 +382,9 @@ for( i in 1:nrow(df)) {
                 
                 df$sf[i] <- "421"
                 
-                } else if ( length(grep("^[1]$", df[i, l])) == 1 &
-                            df$n.all[i] >= 3 &
-                            length(grep("^[1]$|^[2]$|^[3]$|^[6]$|^[7]$|^[8]$|^[1][0]$|^[1][2-4]$", df[i, l])) == n.all[i] & 
-                            sum(df[i, l] %in% 3, na.rm = TRUE) >= 1 & 
-                            sum(df[i, l2] %in% 91, na.rm = TRUE) >= 1 & 
+                } else if ( df$n.all[i] >= 3 &
+                            sum(df[i, l] %in% c(4, 5, 9, 11), na.rm = TRUE) == 0 &
+                            sum(df[i, l2][which(df[i, l] == 3)] == 91, na.rm = TRUE) >= 1 &
                             !(h.marital[i] %in% c(91, 92, 97)) &
                             h.sex[i] == 2 ) { 
                                 
@@ -410,27 +409,31 @@ if(diff1 == 0 & diff2 == 0) {
 l <- grep("^b2_", names(df))
 l2 <- grep("^b16_", names(df))
 for( i in 1:nrow(df)) {
-        if( length(grep("^[5]$", df[i, l])) >= 1 &
-            length(grep("^[6]$", df[i, l])) == 0 &
-            # at least 3 in the household
-            df$n.all[i] >= 3 &
-            # parents are married
+        # at least 3 in the household
+        if( df$n.all[i] >= 3 &
+            # at least one of the parents
+            sum(df[i, l] == 5, na.rm = TRUE) >= 1 &
+            # no grand parents
+            sum(df[i, l] == 6, na.rm = TRUE) == 0 &
+            # length(grep("^[5]$", df[i, l])) >= 1 &
+            # length(grep("^[6]$", df[i, l])) == 0 &
+            # one of the parents are married
             sum(df$p.marital1[i] %in% c(91, 92, 97), na.rm = TRUE) == 0 &
             sum(df$p.marital2[i] %in% c(91, 92, 97), na.rm = TRUE) == 0 &
             # at least one of the siblings is unmarried
-            sum(df[i, l2] %in% 91, na.rm = TRUE) >= 1 & 
+            sum(df[i, l2][which(df[i, l] %in% c(1, 7))] == 91, na.rm = TRUE) >= 1 &
             df$h.marital[i] == 91 &
             # the head is male
             df$h.sex[i] == 1 ) { 
                 
                 df$sf[i] <- "431"
                 
-                } else if ( length(grep("^[5]$", df[i, l])) >= 1 &
-                            length(grep("^[6]$", df[i, l])) == 0 &
-                            df$n.all[i] >= 3 &
+                } else if ( df$n.all[i] >= 3 &
+                            sum(df[i, l] == 5, na.rm = TRUE) >= 1 &
+                            sum(df[i, l] == 6, na.rm = TRUE) == 0 &
                             sum(df$p.marital1[i] %in% c(91, 92, 97), na.rm = TRUE) == 0 &
                             sum(df$p.marital2[i] %in% c(91, 92, 97), na.rm = TRUE) == 0 &
-                            sum(df[i, l2] %in% 91, na.rm = TRUE) >= 1 & 
+                            sum(df[i, l2][which(df[i, l] %in% c(1, 7))] == 91, na.rm = TRUE) >= 1 &
                             df$h.marital[i] == 91 &
                             df$h.sex[i] == 2 ) { 
                                 
@@ -440,8 +443,8 @@ for( i in 1:nrow(df)) {
         }
 
 # diff
-d1 <- df %>% filter(sf %in% c(431, 432)) %>% select(x1)
-d2 <- inc105 %>% filter(a18 %in% c(431, 432)) %>% select(x1)
+d1 <- df %>% filter(sf %in% c(431, 432)) %>% select(matches("x1|a18|^b2_|^b16_"))
+d2 <- inc105 %>% filter(a18 %in% c(431, 432)) %>% select(matches("x1|a18|^b2_|^b16_"))
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -450,7 +453,7 @@ if(diff1 == 0 & diff2 == 0) {
         } else {
                 cat("43x\n", file = check, append = TRUE)
                 }   
-# recode: grand-parent familie --------------------------------------------
+# recode: grand-parent famils --------------------------------------------
 
 # the head is the 1st gen
 l <- grep("^b2_", names(df))
