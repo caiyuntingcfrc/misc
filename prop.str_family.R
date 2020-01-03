@@ -2,7 +2,7 @@
 # prep --------------------------------------------------------------------
 
 rm(list = ls())
-setwd("i:/R_wd/tw_inc/R data files/")
+setwd("D:/R_wd/tw_inc/R data files/")
 # soure func: ins.pack
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 ins.pack("feather", "tidyverse", "magrittr")
@@ -15,12 +15,12 @@ ins.pack("feather", "tidyverse", "magrittr")
 # read feather
 # l <- vector("list", length(file_path))
 # l <- lapply(file_path, read_feather)
-inc107 <- read_feather("df_inc107.feather")
+inc104 <- read_feather("df_inc104.feather")
 
 
-# Recode:inc107 -----------------------------------------------------------
+# Recode:inc104 -----------------------------------------------------------
 
-df <- inc107
+df <- inc104
 
 # factor to numeric (bxx_)
 l <- grep("^b|itm101$", names(df), value = TRUE)
@@ -248,7 +248,7 @@ df %<>% mutate(sf = case_when(
 
 # diff 1xx
 d1 <- df %>% filter(sf %in% c(101, 102)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(101, 102)) %>% select(x1)
+d2 <- inc104 %>% filter(a18 %in% c(101, 102)) %>% select(x1)
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -259,7 +259,7 @@ if(diff1 == 0 & diff2 == 0) {
                 }    
 # diff 2xx
 d1 <- df %>% filter(sf %in% c(201, 202)) %>% select(matches("^x1"))
-d2 <- inc107 %>% filter(a18 %in% c(201, 202)) %>% select(matches("^x1"))
+d2 <- inc104 %>% filter(a18 %in% c(201, 202)) %>% select(matches("^x1"))
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -304,7 +304,7 @@ for( i in 1:nrow(df)) {
 # diff
 d1 <- df %>% filter(sf %in% c(321, 322)) %>% 
         select(matches("^x1|a18|^b2_|^b16_")) 
-d2 <- inc107 %>% filter(a18 %in% c(321, 322)) %>%
+d2 <- inc104 %>% filter(a18 %in% c(321, 322)) %>%
         select(matches("^x1|a18|^b2_|^b16_")) 
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
@@ -352,7 +352,7 @@ for( i in 1:nrow(df)) {
 
 # diff
 d1 <- df %>% filter(sf %in% c(331, 332)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(331, 332)) %>% select(x1)
+d2 <- inc104 %>% filter(a18 %in% c(331, 332)) %>% select(x1)
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -395,7 +395,7 @@ for( i in 1:nrow(df)) {
 
 # diff
 d1 <- df %>% filter(sf %in% c(421, 422)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(421, 422)) %>% select(x1)
+d2 <- inc104 %>% filter(a18 %in% c(421, 422)) %>% select(x1)
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -444,7 +444,7 @@ for( i in 1:nrow(df)) {
 
 # diff
 d1 <- df %>% filter(sf %in% c(431, 432)) %>% select(matches("x1|a18|^b2_|^b16_"))
-d2 <- inc107 %>% filter(a18 %in% c(431, 432)) %>% select(matches("x1|a18|^b2_|^b16_"))
+d2 <- inc104 %>% filter(a18 %in% c(431, 432)) %>% select(matches("x1|a18|^b2_|^b16_"))
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -487,7 +487,7 @@ for( i in 1:nrow(df)) {
                                                 }
         }
 d1 <- df %>% filter(sf %in% c(511, 512)) %>% select(matches("^x1"))
-d2 <- inc107 %>% filter(a18 %in% c(511, 512)) %>% select(matches("^x1"))
+d2 <- inc104 %>% filter(a18 %in% c(511, 512)) %>% select(matches("^x1"))
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -534,7 +534,7 @@ for( i in 1:nrow(df)) {
         }
 
 d1 <- df %>% filter(sf %in% c(531, 532)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(531, 532)) %>% select(x1)
+d2 <- inc104 %>% filter(a18 %in% c(531, 532)) %>% select(x1)
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -573,7 +573,7 @@ for(i in 1:nrow(df)) {
         }
 # diff 
 d1 <- df %>% filter(sf %in% c(611, 612)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(611, 612)) %>% select(x1)
+d2 <- inc104 %>% filter(a18 %in% c(611, 612)) %>% select(x1)
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -614,7 +614,7 @@ for(i in 1:nrow(df)) {
 }
 # diff 
 d1 <- df %>% filter(sf %in% c(621, 622)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(621, 622)) %>% select(x1)
+d2 <- inc104 %>% filter(a18 %in% c(621, 622)) %>% select(x1)
 diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
 diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
 # check
@@ -661,9 +661,9 @@ for(i in 1:nrow(df)) {
 # diff 
 d1 <- df %>% filter(sf %in% c(631, 632)) %>% select(matches("^x1|a18|^b2_|^b16_"))
 # d1 <- df[sf %in% c(631, 632), grep("^x1|a18|^b2_|^b16_", names(df))]
-d2 <- inc107 %>% filter(a18 %in% c(631, 632)) %>% select(matches("^x1|a18|^b2_|^b16_"))
-diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
-diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
+d2 <- inc104 %>% filter(a18 %in% c(631, 632)) %>% select(matches("^x1|a18|^b2_|^b16_"))
+diff1 <- d1[!(d1$x1 %in% d2$x1), ]
+diff2 <- d2[!(d2$x1 %in% d1$x1), ]
 # check
 if(diff1 == 0 & diff2 == 0) { 
         cat("1\n", file = check, append = TRUE) 
@@ -677,10 +677,10 @@ df %<>% mutate(sf = case_when(!is.na(sf) ~ sf,
                               h.sex == 1 ~ "701", 
                               h.sex == 2 ~ "702"))
 # diff 
-d1 <- df %>% filter(sf %in% c(701, 702)) %>% select(x1)
-d2 <- inc107 %>% filter(a18 %in% c(701, 702)) %>% select(x1)
-diff1 <- nrow(d1[!(d1$x1 %in% d2$x1), ])
-diff2 <- nrow(d2[!(d2$x1 %in% d1$x1), ])
+d1 <- df %>% filter(sf %in% c(701, 702)) %>% select(matches("^x1|a18|^b2_|^b16_"))
+d2 <- inc104 %>% filter(a18 %in% c(701, 702)) %>% select(matches("^x1|a18|^b2_|^b16_"))
+diff1 <- d1[!(d1$x1 %in% d2$x1), ]
+diff2 <- d2[!(d2$x1 %in% d1$x1), ]
 # check
 if(diff1 == 0 & diff2 == 0) { 
         cat("1\n", file = check, append = TRUE) 

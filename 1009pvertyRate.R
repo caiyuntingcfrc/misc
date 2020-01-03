@@ -1,6 +1,7 @@
 rm(list = ls())
 source("~/Github_CFRC/misc/func_PovertyRate.R")
-setwd("D:/R_wd/tw_inc/")
+setwd("D:/R_wd/tw_inc/R data files/")
+ins.pack("feather")
 
 # load Rdata --------------------------------------------------------------
 # list of files
@@ -9,8 +10,12 @@ path_list <- paste(getwd(), "/R data files/", l, sep = "")
 lapply(path_list, load, envir = .GlobalEnv)
 
 # poverty rates -----------------------------------------------------------
-p2000 <- poverty_rate(df = df.inc89, weight = "a21", year = 2000) %>% 
-        round(digits = 2)
+df.inc86 <- read_feather("df_inc86.feather")
+df.inc87 <- read_feather("df_inc87.feather")
+df.inc89 <- read_feather("df_inc89.feather")
+p1997 <- poverty_rate(df = df.inc86, weight = "a21") 
+p1998 <- poverty_rate(df = df.inc87, weight = "a21") 
+p2000 <- poverty_rate(df = df.inc89, weight = "a21")
 p2001 <- poverty_rate(df = df.inc90, weight = "a20", year = 2001) %>% 
         round(digits = 2)
 p2002 <- poverty_rate(df = df.inc91, weight = "a20", year = 2002) %>% 
