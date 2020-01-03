@@ -5,9 +5,9 @@ devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/func
 ins.pack("tidyverse")
 
 ##### function -- poverty rate #####
-poverty_rate <- function(df, weight, 
-                         n.all = "a8", sex = "a7", aged = "a19", 
-                         type = "a18", n.adult = "a12") {
+poverty_rate_children <- function(df, weight, 
+                                  n.all = "a8", sex = "a7", aged = "a19", 
+                                  type = "a18", n.adult = "a12") {
 
         ##### equivalised income #####
         n <- df[[n.all]]
