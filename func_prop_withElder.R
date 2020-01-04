@@ -42,7 +42,7 @@ prop.e <- function(df, weight, age) {
         weighed <- mapply(rep, x = i, times = wtab, SIMPLIFY = TRUE)
         weighed <- as.numeric(unlist(weighed, use.names = TRUE))
         # w1 <- c[rep(1:length(c), times = w)]
-        out <- c(h$year[1] + 1911L, freq(weighed)[[6]])
+        out <- c(h$year[1] + 1911L, summarytools::freq(weighed)[[6]])
         return(out)
         rm(h)
         gc()
