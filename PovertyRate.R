@@ -2,7 +2,7 @@ rm(list = ls())
 # soure func: ins.pack
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_PovertyRate.R")
-source("~/Github/misc/func_PovertyRate_withChildren.R")
+devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_PovertyRate_withChildren.R")
 setwd("i:/R_wd/tw_inc/R data files/")
 ins.pack("tidyverse", "feather", "parallel")
 
@@ -47,9 +47,13 @@ stopCluster(cl)
 
 df1 <- do.call(cbind, pr.list1)
 df1 <- df1[ , order(names(df1))] %>% round(2L)
+df1$type <- rownames(df1)
+write_excel_csv(df1, "prRate.csv")
 
 df2 <- do.call(cbind, pr.list2)
 df2 <- df2[ , order(names(df2))] %>% round(2L)
+df2$type <- rownames(df2)
+write_excel_csv(df2, "prRate_children.csv")
 
 l <- grep("^p[2][0][0-9][0-9]", names(.GlobalEnv), value = TRUE)
 data.list <- do.call("list", mget(l))
