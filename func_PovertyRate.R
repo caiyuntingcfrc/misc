@@ -361,7 +361,7 @@ poverty_rate <- function(df, weight,
         names(p.all_elderly85) <- "Elderly population (>=85)"
         
         #### return the results #####
-        l <- mget(grep("^p.all|^p.m|^p.f|^p.with|^p.without",
+        l <- mget(grep("^p.all|^p.m|^p.f|^p.with|^p.without|^p.single",
                        ls(),
                        value = TRUE))
         out.table <- do.call(rbind, l) %>%
