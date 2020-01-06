@@ -3,7 +3,7 @@ rm(list = ls())
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_PovertyRate.R")
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_PovertyRate_withChildren.R")
-setwd("i:/R_wd/tw_inc/R data files/")
+setwd("D:/R_wd/tw_inc/R data files/")
 ins.pack("tidyverse", "feather", "parallel")
 
 # load Rdata --------------------------------------------------------------
@@ -24,7 +24,7 @@ for(i in 1:length(path_list2)) {
 
 # cluster -----------------------------------------------------------------
 
-cpu.core <- detectCores()
+cpu.core <- detectCores() - 1L
 cl <- makeCluster(cpu.core)
 clusterEvalQ(cl, library(tidyverse))
 clusterEvalQ(cl, library(magrittr))
