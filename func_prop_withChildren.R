@@ -37,7 +37,7 @@ prop.f <- function(df, weight, age) {
         if(!is.numeric(w)) { w <- as.numeric(w) }
         c <- h[["with_children"]]
         # replicate by weight
-        wtab <- xtabs(w ~ c)
+        wtab <- round(xtabs(w ~ c), 0)
         i <- names(wtab)
         weighed <- mapply(rep, x = i, times = wtab, SIMPLIFY = TRUE)
         weighed <- as.numeric(unlist(weighed, use.names = TRUE))
