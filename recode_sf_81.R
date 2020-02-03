@@ -2,7 +2,7 @@
 # prep --------------------------------------------------------------------
 
 rm(list = ls())
-setwd("i:/R_wd/tw_inc/R data files/")
+setwd("d:/R_wd/tw_inc/R data files/")
 # soure func: ins.pack
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 ins.pack("feather", "tidyverse", "magrittr")
@@ -10,7 +10,7 @@ ins.pack("feather", "tidyverse", "magrittr")
 # load --------------------------------------------------------------------
 
 inc81 <- read_feather("df_inc81.feather")
-inc81 <- haven::read_sav("i:/R_wd/tw_inc/AA170017/inc81.sav")
+# inc81 <- haven::read_sav("d:/R_wd/tw_inc/AA170017/inc81.sav")
 # Recode:inc81 -----------------------------------------------------------
 
 df <- inc81
@@ -32,6 +32,7 @@ df$`n.all` <- n.all
 table(df$n.all)
 # numbers of adults -------------------------------------------------------
 
+l <- grep("^b4_", names(df), value = TRUE)
 df$`n.adults` <- NULL
 n.adults <- vector("numeric", nrow(df))
 for(i in 1:nrow(df)) {
