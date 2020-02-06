@@ -31,6 +31,13 @@ lb4 <- grep("^b1_", names(df), value = TRUE)
 # numbers of people in the household
 df[ , n.all := rowSums(!is.na(.SD), na.rm = TRUE), .SDcols = lb4]
 
+# numbers of adults -------------------------------------------------------
+
+# grep
+lb4 <- grep("^b4_", names(df), value = TRUE)
+# numbers of people in the household
+df[ , n.adults := rowSums(.SD >= 18, na.rm = TRUE), .SDcols = lb4]
+
 # numbers of children -----------------------------------------------------
 
 lb4 <- grep("^b4_", names(df), value = TRUE)

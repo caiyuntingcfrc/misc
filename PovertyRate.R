@@ -4,7 +4,7 @@ devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/func
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_PovertyRate.R")
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_PovertyRate_withChildren.R")
 setwd("D:/R_wd/tw_inc/R data files/")
-ins.pack("tidyverse", "feather", "parallel")
+ins.pack("tidyverse", "feather", "parallel", "pbapply")
 
 # load Rdata --------------------------------------------------------------
 # list of files1 : 90 - 107
