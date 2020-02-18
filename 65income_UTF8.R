@@ -4,14 +4,14 @@
 
 # prep and options --------------------------------------------------------
 # rm
-rm(list = ls())
+rm(list = ls()); cat("\14")
 # set working directory
 setwd("~/R_wd/tw_inc/")
 # soure func: ins.pack
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 # loading packages
 ins.pack("tidyverse", "docxtractr", "readtext", 
-         "haven", "hablar", "reshape2")
+         "haven", "hablar", "data.table")
 # options
 options(readr.show_progress = TRUE)
 # do not show scientific notation
@@ -89,6 +89,11 @@ doc.items.contents <- doc.items %>%
         .[!is.na(.)] %>% 
         .[-(1:27)]
 
+# spss file ---------------------------------------------------------------
+
+d.spss <- read_spss("AA170001/inc65.sav") %>% 
+        zap_formats() %>% 
+        zap_labels()
 
 # data processing and manipulation ----------------------------------------
 # data raw and card_num
@@ -238,7 +243,6 @@ df22 <- read_fwf(y, fwf_positions(code_tbl$start[l],
 # free up ram
 gc()
 
-
 # card 23-99 --------------------------------------------------------------
 # filter out card_num %in% 23:99
 x <- filter(df.source, card_num %in% 23:99) %>% .[ ,1] %>% .$raw
@@ -246,10 +250,20 @@ y <- tempfile("tmp", fileext = ".dat")
 write(x, file = y)
 d <- vector("list", length = length(x))
 l <- grep("^x1|^itm|^amt", code_tbl$variable)
-s <- code_tbl$start[l]
-e <- code_tbl$end[l]
+s <- c(code_tbl$start[l])
+e <- c(code_tbl$end[l])
 d <- read_fwf(y, fwf_positions(start = s, 
-                               end = e))
+                               end = e), 
+              col_types = cols(.default = "c"))
+d.test <- d %>% 
+        filter(X1 == "01100001") %>% 
+        t() %>% 
+        as_tibble() %>% 
+        gather(d.test)
+names(d.test) <- unlist(c(d.test[1, 2], "value"))
+d.test %<>% .[-1, ]
+d.test$d.test <- "key"
+spread(d.test, key = "d.test", value = "value")
 d$time <- with(d, ave(rep(1, nrow(d)), X1, FUN = seq_along))
 dL <- melt(d, id.vars = c("X1", "time"))
 dd <- dcast(dL, X1 ~ variable + time)
@@ -275,6 +289,17 @@ for(i in 1:length(x)) {
         }
 # for loop (5 sections)
 # item 101 = "1010" (9, 12) , take posistion (9, 11)
+# x <- list()
+# for(i in 0:6) {
+#         x[[i + 1]] <- read_fwf(y, fwf_positions(c(1, 9 + i * 10, 12 + i * 10),
+#                                             c(8, 11 + i * 10, 18 + i * 10),
+#                                             col_names = c("x1", "item", "exp")), 
+#                                col_types = cols(x1 = "c", item = "c", exp = "c")
+#                            )
+#         df23 <- rbindlist(x) %>% distinct()
+#         }
+# # free up ram
+# gc()
 x <- list()
 for(i in 0:6) {
         x[[i + 1]] <- read_fwf(y, fwf_positions(c(1, 9 + i * 10, 12 + i * 10),
@@ -282,15 +307,56 @@ for(i in 0:6) {
                                             col_names = c("x1", "item", "exp")), 
                                col_types = cols(x1 = "c", item = "c", exp = "c")
                            )
-        df23 <- do.call(rbind, x) %>% distinct()
+        df23 <- rbindlist(x) %>% distinct()
         }
 # free up ram
 gc()
-df23 <- df23 %>% filter(x1 == "01100001")
+
+##### replace symbols with digits #####
+p <- grepbook$pattern
+r <- grepbook$digi
+for(i in 1:10) {
+        # postitive [1:10]
+        a <- grep(p[i], df23$exp)
+        df23$exp[a] <- gsub(pattern = p[i], 
+                            replacement = r[i], 
+                            x = grep(p[i], df23$exp, value = TRUE))
+        # negative [11:20]
+        b <- grep(p[i + 10], df23$exp)
+        df23$exp[b] <- gsub(pattern = p[i + 10], 
+                            replacement = r[i + 10], 
+                            x = grep(p[i + 10], df23$exp, value = TRUE)) %>% 
+                paste("-", ., sep = "")
+}
+
+# spread (transpose)
+df23 <- df23 %>% distinct() %>% spread(key = "item", value = "exp", drop = FALSE)
+
+d.test <- df23 %>% 
+        filter(x1 == "01100001") %>% 
+        group_by(x1) %>% 
+        spread(key = x1, value = exp) %>% 
+        as.data.table()
+colnames(d.test) <- c("item", "x1")
+d.test[ , c := paste0(item, x1)]
+
+d <- spread(d.test, x1, exp) %>% 
+        group_by() %>% 
+        as.data.table()
+d
+
+# df23 <- df23 %>% filter(x1 %in% c("01100001", "01100002"))
+d$time <- with(d, ave(rep(1, nrow(d)), item, FUN = seq_along))
+
+# spread (transpose)
+df23 <- df23 %>% distinct() %>% spread(key = "item", value = "exp")
+
+d.test <- spread(df23, x1, exp, drop = TRUE)
 # 
-df23$time <- with(df23, ave(rep(1, nrow(df23)), x1, FUN = seq_along))
-dL <- melt(df23, id.vars = c("x1", "item", "time"))
-dd <- dcast(dL, x1 ~ variable + time)
+
+df23 %<>% select(-x1)
+dL <- melt(df23, id.vars = c("item", "time"))
+dd <- dcast(dL, variable ~ item + time, value.var = "value")
 
 # replace symbols with digits ---------------------------------------------
 
