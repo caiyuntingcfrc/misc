@@ -6,7 +6,7 @@
 # rm
 rm(list = ls()); cat("\14")
 # set working directory
-setwd("~/R_wd/tw_inc/")
+setwd("d:/R_wd/tw_inc/")
 # soure func: ins.pack
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 # loading packages
@@ -248,86 +248,77 @@ gc()
 x <- filter(df.source, card_num %in% 23:99) %>% .[ ,1] %>% .$raw
 y <- tempfile("tmp", fileext = ".dat")
 write(x, file = y)
-d <- vector("list", length = length(x))
-l <- grep("^x1|^itm|^amt", code_tbl$variable)
-s <- c(code_tbl$start[l])
-e <- c(code_tbl$end[l])
-d <- read_fwf(y, fwf_positions(start = s, 
-                               end = e), 
-              col_types = cols(.default = "c"))
-d.test <- d %>% 
-        filter(X1 == "01100001") %>% 
-        t() %>% 
-        as_tibble() %>% 
-        gather(d.test)
-names(d.test) <- unlist(c(d.test[1, 2], "value"))
-d.test %<>% .[-1, ]
-d.test$d.test <- "key"
-spread(d.test, key = "d.test", value = "value")
-d$time <- with(d, ave(rep(1, nrow(d)), X1, FUN = seq_along))
-dL <- melt(d, id.vars = c("X1", "time"))
-dd <- dcast(dL, X1 ~ variable + time)
 
-# test
-# mydf <- read_csv("~/Documents/test.csv")
-# mydf$time <- with(mydf, ave(rep(1, nrow(mydf)), 
-#                Prefix, FUN = seq_along))
-# dfL <- melt(mydf, id.vars=c("Prefix", "Exchange", "time"))
-# dcast(dfL, Prefix ~ variable + time)
+# start and end
+l <- grep("^x1|^itm|^amt", code_tbl$variable); l
+s <- c(code_tbl$start[l]); s
+e <- c(code_tbl$end[l]); e
 
-# 
-test <- d %>% reshape(direction = "wide", 
-                      idvar = c("X1"))
-test <- d %>% pivot_wider()
-n1 <- rep(c("itm", "atm"), each = 1, times = (ncol(d) - 1) / 2)
-n2 <- rep(1:(length(n1) / 2), each = 2)
-col1 <- paste("x1", n1, n2, sep = "")
-colnames(d) <- col1
-for(i in 1:length(x)) { 
-        d[[i]] <- read_fwf(y, fwf_positions(start = s, 
-                                            end = e))
+# read_fwf
+df <- read_fwf(y, fwf_positions(s, e))
+df <- as.data.frame(df)
+df <- df[order(df$X1), ]
+t <- split(df, factor(df$X1, levels = unique(df$X1)))
+
+
+# filter list
+filter.list <- names(table(df$X1))
+# list
+x <- vector("list", length(filter.list))
+
+t <- split(df, f = dplyr::group_indices(X1), drop = TRUE)
+
+f <- function(filter.list, df){ 
+        d.list <- df %>% filter(X1 == filter.list)
+        
         }
-# for loop (5 sections)
-# item 101 = "1010" (9, 12) , take posistion (9, 11)
-# x <- list()
-# for(i in 0:6) {
-#         x[[i + 1]] <- read_fwf(y, fwf_positions(c(1, 9 + i * 10, 12 + i * 10),
-#                                             c(8, 11 + i * 10, 18 + i * 10),
-#                                             col_names = c("x1", "item", "exp")), 
-#                                col_types = cols(x1 = "c", item = "c", exp = "c")
-#                            )
-#         df23 <- rbindlist(x) %>% distinct()
-#         }
-# # free up ram
-# gc()
-x <- list()
-for(i in 0:6) {
-        x[[i + 1]] <- read_fwf(y, fwf_positions(c(1, 9 + i * 10, 12 + i * 10),
-                                            c(8, 11 + i * 10, 18 + i * 10),
-                                            col_names = c("x1", "item", "exp")), 
-                               col_types = cols(x1 = "c", item = "c", exp = "c")
-                           )
-        df23 <- rbindlist(x) %>% distinct()
+
+for(i in 1:length(filter.list)) {
+        d.list <- df %>% 
+                filter(X1 == filter.list[i])
+        d.list <- d.list %>% split(seq(nrow(.)))
+        d <- Reduce(function(...) left_join(..., by = "X1"), d.list)
+        x[[i]] <- d
         }
+
+d.test <- rbindlist(x, fill = TRUE)
+prefix <- rep(c("itm", "amt"), times = (ncol(d.test) - 1) / 2)
+suffix <- rep(1:(length(prefix) / 2), each = 2)
+colnames(d.test) <- c("x1", paste0(prefix, suffix))
+rm(x)
+
 # free up ram
 gc()
 
-##### replace symbols with digits #####
-p <- grepbook$pattern
-r <- grepbook$digi
-for(i in 1:10) {
-        # postitive [1:10]
-        a <- grep(p[i], df23$exp)
-        df23$exp[a] <- gsub(pattern = p[i], 
-                            replacement = r[i], 
-                            x = grep(p[i], df23$exp, value = TRUE))
-        # negative [11:20]
-        b <- grep(p[i + 10], df23$exp)
-        df23$exp[b] <- gsub(pattern = p[i + 10], 
-                            replacement = r[i + 10], 
-                            x = grep(p[i + 10], df23$exp, value = TRUE)) %>% 
-                paste("-", ., sep = "")
-}
+# replace -----------------------------------------------------------------
+library(magrittr)
+if_na(d.test, 0)
+
+t <- d.test[1, ] %>% as.vector("double")
+if_na(t, 0)
+t1 <- gsub("01", x = t, replacement = "cc")
+t1
+
+# d <- vector("list", length = length(x))
+# l <- grep("^x1|^itm|^amt", code_tbl$variable)
+
+l <- grep("^itm|^amt", code_tbl$variable); l
+s <- c(code_tbl$start[l]); s
+e <- c(code_tbl$end[l]); e
+
+# insert.at
+insert.at <- function(a, pos, ...) {
+        dots <- list(...)
+        stopifnot(length(dots) == length(pos))
+        result <- vector("list", 2 * length(pos) + 1)
+        result[c(TRUE,FALSE)] <- split(a, cumsum(seq_along(a) %in% (pos + 1)))
+        result[c(FALSE,TRUE)] <- dots
+        unlist(result)
+        }
+s <- c(1, insert.at(s, c(2, 4, 6, 8, 10, 12), 1, 1, 1, 1, 1, 1)); s
+e <- c(8, insert.at(e, c(2, 4, 6, 8, 10, 12), 8, 8, 8, 8, 8, 8)); e
+
+
 
 # spread (transpose)
 df23 <- df23 %>% distinct() %>% spread(key = "item", value = "exp", drop = FALSE)
@@ -351,7 +342,7 @@ d$time <- with(d, ave(rep(1, nrow(d)), item, FUN = seq_along))
 # spread (transpose)
 df23 <- df23 %>% distinct() %>% spread(key = "item", value = "exp")
 
-d.test <- spread(df23, x1, exp, drop = TRUE)
+d.test <- spread(df23, x1, exp)
 # 
 
 df23 %<>% select(-x1)
