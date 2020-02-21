@@ -6,7 +6,7 @@
 # rm
 rm(list = ls()); cat("\14")
 # set working directory
-setwd("d:/R_wd/tw_inc/")
+setwd("~/R_wd/tw_inc/")
 # soure func: ins.pack
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 # loading packages
@@ -258,8 +258,28 @@ e <- c(code_tbl$end[l]); e
 df <- read_fwf(y, fwf_positions(s, e))
 df <- as.data.frame(df)
 df <- df[order(df$X1), ]
+
+df.test <- df %>% filter(X1 == "01100001") %>% 
+        gather(., key = "X1")
+
 t <- split(df, factor(df$X1, levels = unique(df$X1)))
 
+x <- list()
+for(i in 0:6) {
+        x[[i + 1]] <- read_fwf(y, fwf_positions(c(1, 9 + i * 10, 12 + i * 10),
+                                                c(8, 11 + i * 10, 18 + i * 10),
+                                                col_names = c("x1", "item", "exp")), 
+                               col_types = cols(x1 = "c", item = "c", exp = "c")
+        )
+        df23 <- rbindlist(x) %>% distinct()
+}
+d <- df23 %>%
+        filter(x1 == "01100001") %>% 
+        split(., factor(.$x1, levels = unique(.$x1)))
+gather(d, x1)
+Reduce(function(...) left_join(..., by = "x1"), d)
+# free up ram
+gc()
 
 # filter list
 filter.list <- names(table(df$X1))
@@ -268,7 +288,7 @@ x <- vector("list", length(filter.list))
 
 t <- split(df, f = dplyr::group_indices(X1), drop = TRUE)
 
-f <- function(filter.list, df){ 
+f <- function(df) { 
         d.list <- df %>% filter(X1 == filter.list)
         
         }
@@ -323,7 +343,7 @@ e <- c(8, insert.at(e, c(2, 4, 6, 8, 10, 12), 8, 8, 8, 8, 8, 8)); e
 # spread (transpose)
 df23 <- df23 %>% distinct() %>% spread(key = "item", value = "exp", drop = FALSE)
 
-d.test <- df23 %>% 
+d.test <- df %>% 
         filter(x1 == "01100001") %>% 
         group_by(x1) %>% 
         spread(key = x1, value = exp) %>% 
