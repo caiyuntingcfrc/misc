@@ -3,21 +3,15 @@
 # The Survey of Family Income and Expenditure, 2018 -----------------------
 
 # prep and options --------------------------------------------------------
+# rm
+rm(list = ls()); cat("\14")
 # set working directory
 setwd("D:/R_wd/tw_inc/")
-# loading packages
-# expss must be loaded after haven
-list.packages <- c("tidyverse", "docxtractr", "readtext", 
-                   "haven", "hablar")
-# check if the packages are installed
-l <- !(list.packages %in% installed.packages()[ , "Package"])
-new.packages <- list.packages[l]
-# install new packages
-if(length(new.packages)) install.packages(new.packages)
-# load the packages
-lapply(list.packages, require, character.only = TRUE)
-# remove lists
-rm(l, list.packages, new.packages)
+# ins.pak
+devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
+# ins.pack
+ins.pack("tidyverse", "docxtractr", "readtext", 
+         "haven", "hablar"); rm(ins.pack)
 # options
 options(readr.show_progress = TRUE)
 # do not show scientific notation
