@@ -6,69 +6,114 @@ rm(list = ls()); cat("\14")
 # source("~/Github_CFRC/misc/func_ins.pack.R")
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 # setwd
-setwd("d:/R_wd/")
+setwd("d:/R_wd/women/")
 # options
 options(scipen = 999)
+# load packages
+ins.pack("haven", "data.table", "tidyverse", 
+         "magrittr", "docxtractr")
+# data source
+path_code <- "AA150018/code105.docx"
+path_dat <- "AA150018/Women105.dat"
+year <- 105
 
-ins.pack("haven", 
-         "data.table", 
-         "tidyverse", 
-         "readxl")
+
+# codebook ----------------------------------------------------------------
+
+# extract table in docx
+code_tbl <- read_docx("AA150018/code105.docx") %>% 
+        docx_extract_tbl() %>% 
+        na.omit()
+# names
+names(code_tbl) <- c("q_num", "var_name", "var_pos", 
+                     "var_label", "val_label", "note")
+
+# start and end
+m <- str_split(code_tbl$var_pos, "-", simplify = TRUE)
+w <- which(m == "", arr.ind = TRUE)[ , 1]
+m[w, ][ , 2] <- m[w, ][ , 1]
+code_tbl$start <- as.integer(m[ , 1])
+code_tbl$end <- as.integer(m[ , 2])
 
 # read the file -----------------------------------------------------------
-# year
-year <- read_xls("fertility rate/TW_ASFR.xls", range = "B5:B77", col_names = FALSE)
-colnames(year) <- "year"
-# asfr
-asfr_1 <- read_xls("fertility rate/TW_ASFR.xls", range = "D4:J77") %>% 
-        # rename with select
-        select(`15_19` = `15～19`, 
-               `20_24` = `20～24`,
-               `25_29` = `25～29`,
-               `30_34` = `30～34`,
-               `35_39` = `35～39`,
-               `40_44` = `40～44`,
-               `45_49` = `45～49`,
-               everything())
-# cbind
-asfr <- cbind(year, asfr_1)
-# rm
-rm(asfr_1, year)
 
-# calc --------------------------------------------------------------------
+dat <- read_fwf(file = path_dat, 
+                col_positions = fwf_positions(start = code_tbl$start, 
+                                              end = code_tbl$end, 
+                                              col_names = code_tbl$var_name), 
+                col_types = cols(a3 = "d"))
 
+# calc: n.children --------------------------------------------------------
 
-for(i in 1:nrow(asfr)){
-        
-        f15_19 <- sum(asfr[1:5, 2]) * 5 / 1000
-        f15_19 <- sum(asfr[1:5, 3]) * 5 / 1000
-        f15_19 <- sum(asfr[1:5, 4]) * 5 / 1000
-        f15_19 <- sum(asfr[1:5, 5]) * 5 / 1000
-        f15_19 <- sum(asfr[1:5, 6]) * 5 / 1000
-        f15_19 <- sum(asfr[1:5, 7]) * 5 / 1000
+# replace na with 0
+dat[ , c("b2a_a", "b2a_b")] %<>% expss::if_na(., 0)
+
+# check weather the weights are numeric
+if(sum(sapply(dat[ , c("weight1", "weight2")], is.character)) == 2) {
+        dat[ , c("weight1", "weight2")] %<>% sapply(., as.numeric)
 }
 
-sum(asfr[1:5, 2]) * 5 / 1000
-sum(asfr[6:10, 3]) * 5 / 1000
+# dplyr approach
+dat %<>% rowwise() %>% mutate(n.children = sum(b2a_a, b2a_b, na.rm = TRUE))
+# data.table approach
+setDT(dat)
+dat[ , n.children_rev := rowSums(.SD, na.rm = TRUE), .SDcols = c("b2a_a", "b2a_b")]
+# compare the result
+setdiff(dat$n.children, dat$n.children_rev)
+
+# var: haveChildren
+dat[ , haveChildren := if_else(n.children > 0, 1, 0)]
 
 
-# read file ---------------------------------------------------------------
+# calc: childless ---------------------------------------------------------
 
+# filter age == 46 (cohort 1970)
+df <- dat %>% 
+        filter(a3 == 46) %>% 
+        filter(a0 %in% c(1, 2))
 
+# sample freq table
+epiDisplay::tab1(df$haveChildren, decimal = 2, graph = FALSE)
 
-df <- read_sav("women/105年AA150018/women105.sav") %>% 
-        # remove variable labels
-        zap_label() %>% 
-        # remove value labels
-        zap_labels()
+# wtab approach
+# weight table
+wtab <- round(xtabs(df[["weight2"]] ~ df[["haveChildren"]]))
+# replicate by weight
+i <- names(wtab)
+weighed <- unlist(mapply(rep, x = i, times = wtab))
+# weighed <- unlist(weighed, use.names = TRUE)
 
-# filter ------------------------------------------------------------------
+# pop freq table
+epiDisplay::tab1(weighed, decimal = 2, graph = FALSE)
 
-# filter by age
-df <- df %>% filter(15 <= a3 & a3 < 50)
+# dplyr approach
+# weigh table
+wtab <- df %>% 
+        group_by(haveChildren) %>%
+        summarise(w = round(sum(weight2, na.rm = TRUE)), .groups = "keep")
+# replicate by weight
+weighed <- unlist(mapply(rep, x = wtab$haveChildren, times = wtab$w))
+# pop freq table
+epiDisplay::tab1(weighed, decimal = 2, graph = FALSE)
 
-# sum: all children
-df <- df %>% 
-        mutate( # children_all = rowSums(.[ , grep("^b2a_a|^b2a_b", names(df))], na.rm = TRUE), 
-                children_check = rowSums(select(., b2a_a, b2a_b), na.rm = TRUE))
+# calc: CCFR (cohort 1970) ------------------------------------------------
 
+df <- dat %>% 
+        filter(a3 %in% 45:49)
+
+# n.women
+n.women <- sum(df$weight2, na.rm = TRUE)
+
+# n.children
+wtab <- round(xtabs(df[["weight2"]] ~ df[["n.children"]]))
+n.children <- sum(as.numeric(names(wtab)) * as.numeric(wtab))
+
+ccfr70 <- n.children / n.women
+
+# dplyr
+wtab <- df %>% 
+        group_by(n.children) %>% 
+        summarise(w = round(sum(weight2, na.rm = TRUE)), .groups = "keep")
+n.children <- sum(with(wtab, n.children * w))
+
+ccfr70 <- n.children / n.women
