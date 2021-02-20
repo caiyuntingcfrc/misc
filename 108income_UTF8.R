@@ -6,7 +6,7 @@
 # rm
 rm(list = ls()); cat("\14")
 # set working directory
-setwd("i:/R_wd/tw_inc/")
+setwd("d:/R_wd/tw_inc/")
 # ins.pak
 devtools::source_url("https://raw.githubusercontent.com/caiyuntingcfrc/misc/function_poverty/func_ins.pack.R")
 # ins.pack

@@ -11,12 +11,69 @@ setwd("d:/R_wd/women/")
 options(scipen = 999)
 # load packages
 ins.pack("haven", "data.table", "tidyverse", 
-         "magrittr", "docxtractr")
-# data source
-path_code <- "AA150018/code105.docx"
-path_dat <- "AA150018/Women105.dat"
-year <- 105
+         "magrittr", "docxtractr", "readr")
 
+# extrac zip files --------------------------------------------------------
+# path
+# list.path <- paste0(getwd(), "/", dir())
+# unzip file
+# sapply(list.path, unzip)
+
+# list: file path
+file.path <- paste0(getwd(), "/", list.files(pattern = "[0-9]*\\.dta", recursive = TRUE))
+# extract year
+year <- str_extract(file.path, "[0-9]{1,3}") %>% as.numeric()
+
+
+# read files --------------------------------------------------------------
+
+file.list <- lapply(file.path, read_stata, encoding = "Big-5")
+
+for(i in 1:length(file.list)){
+        # recode i
+        file.list[[i]] %<>% mutate(year = year[i])
+}
+
+# data source
+# path_code <- "AA150018/code105.docx"
+# path_dat <- "AA150018/Women105.dat"
+# year <- 105
+
+# function:CCFR -----------------------------------------------------------
+
+ccfr <- function(df, age){
+        df %<>% filter(a3 == age)
+        df %<>% mutate(
+                year_index = case_when(year[1] %in% 68:71 ~ "y68", 
+                                       year[1] %in% 72:92 ~ "y72", 
+                                       year[1] %in% 95 ~ "y95", 
+                                       year[1] %in% 99:105 ~ "y99"), 
+                year = year + 1911, 
+                cohort = year - age)
+        # setDT
+        setDT(df)
+        # switch
+        x <- function(year){
+                switch(year, 
+                       y68 = c("b3_1a", "b3_1b"), 
+                       y72 = c("b3_1_1a", "b3_1_1b"), 
+                       y95 = c("b2_1_1a", "b2_1_1b"), 
+                       y99 = c("b2a_a", "b2a_b"))
+        }
+        # rowSums
+        df[ , n.children := rowSums(.SD, na.rm = TRUE), .SDcols = x(df$year_index[1])]
+        # n.women
+        n.women <- sum(df$weight2, na.rm = TRUE)
+        # n.children
+        wtab <- round(xtabs(df[["weight2"]] ~ df[["n.children"]]))
+        n.children <- sum(as.numeric(names(wtab)) * as.numeric(wtab))
+        ccfr <- n.children / n.women
+        result <- data.frame(year = df$year[[1]], cohort = df$cohort[[1]], ccfr = ccfr)
+        return(result)
+}
+result <- lapply(file.list, ccfr, 35) %>% rbindlist()
+# sort by year
+result <- result[order(year)]
 
 # codebook ----------------------------------------------------------------
 
